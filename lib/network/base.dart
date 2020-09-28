@@ -9,6 +9,7 @@ import 'cache.dart';
 typedef T ModelJsonConvert<T>(Map<String, dynamic> json);
 
 const _HTTP_ENDPOINT = "http://yuenov.com:15555/";
+int lastTime = 0;
 
 class Http {
   ///超时时间
@@ -75,10 +76,16 @@ class Http {
         String cacheKey = "",
         bool cacheDisk = false,
       }) async {
+    var time = DateTime.now().millisecondsSinceEpoch;
+    if ((time - lastTime) / 1000 < 10) {
+      // 10s内只能请求一次
+      return "";
+    }
+    lastTime = time;
     Options requestOptions = options ?? Options();
     requestOptions = requestOptions.merge(extra: {
       "noCache": noCache,
-      "cacheKey": cacheKey.length == 0 ? path : cacheKey,
+      "cacheKey": cacheKey.length == 0 ? path + params.toString() : cacheKey,
       "cacheDisk": cacheDisk,
     });
 
@@ -94,7 +101,7 @@ class Http {
 
     var entity = ResultEntity.fromRawJson(jsonValue["result"]);
     if (entity.code != 0) {
-      throw Error();
+      throw ResponseError(entity.msg);
     }
     var res = Map<String, dynamic>.from(jsonValue["data"]);
     if (keypath.length == 0) {

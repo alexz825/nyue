@@ -78,8 +78,7 @@ class _BookCityState extends State<BookCity> {
   }
 
   Future<bool> refreshCategory(String category, int categoryId) {
-    // TODO: 刷新当前category
-    int page = this.pages[this.getCategoryKey(category, categoryId)] ?? 0;
+    int page = this.pages[this.getCategoryKey(category, categoryId)] ?? 1; // 第一次请求就是第一页了
     page += 1;
     return this.requestCategory(category, categoryId, page);
   }
@@ -87,12 +86,14 @@ class _BookCityState extends State<BookCity> {
   Future<void> request(int page) {
     Future<List<BookCityCardModel>> result = HttpUtil.getCategoryDiscovery(page, BookCityCardModel.fromRawJson);
     return result.then((value) {
+      print(value);
       this.setState(() {
         this.cards = value;
       });
       this.page += 1;
     }).catchError((error) {
       // TODO: 显示error页面，点击重新加载
+      print(error);
     });
   }
 

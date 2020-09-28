@@ -80,3 +80,8 @@ class ResultEntity {
   };
 }
 
+class ResponseError extends Error {
+  String msg;
+  ResponseError(this.msg);
+}
+

@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const CACHE_ENABLE = true;
-const CACHEMAXAGE = 600;
+const CACHEMAXAGE = 10;
 const CACHE_MAXCOUNT = 100;
 
 class CacheObject {
@@ -42,11 +42,11 @@ class NetCacheInterceptor extends Interceptor {
     // 如果刷新，先删除相关缓存
     if (refresh) {
       // 删除uri相同的内存缓存
-      delete(options.uri.toString());
+      delete(getCacheKey(options));
 
       // 删除磁盘缓存
       if (cacheDisk) {
-        await prefs.remove(options.uri.toString());
+        await prefs.remove(getCacheKey(options));
       }
 
       return options;
@@ -55,7 +55,7 @@ class NetCacheInterceptor extends Interceptor {
     // get 请求，开启缓存
     if (options.extra["noCache"] != true &&
         options.method.toLowerCase() == 'get') {
-      String key = options.extra["cacheKey"] ?? options.uri.toString();
+      String key = options.extra["cacheKey"] ?? getCacheKey(options);
 
       // 策略 1 内存缓存优先，2 然后才是磁盘缓存
 
@@ -108,7 +108,7 @@ class NetCacheInterceptor extends Interceptor {
       // 策略：内存、磁盘都写缓存
 
       // 缓存key
-      String key = options.extra["cacheKey"] ?? options.uri.toString();
+      String key = options.extra["cacheKey"] ?? getCacheKey(options);
 
       // 磁盘缓存
       if (options.extra["cacheDisk"] == true) {
@@ -127,5 +127,9 @@ class NetCacheInterceptor extends Interceptor {
 
   void delete(String key) {
     cache.remove(key);
+  }
+
+  String getCacheKey(RequestOptions options) {
+    return options.path + options.queryParameters.toString();
   }
 }
