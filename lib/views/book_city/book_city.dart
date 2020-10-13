@@ -6,7 +6,7 @@ import 'package:nyue/views/book_city/card.dart';
 import 'package:nyue/data/book_city_item.dart';
 import 'package:nyue/data/book_list_item.dart';
 import 'package:nyue/network/api_list.dart';
-import 'package:nyue/network/base.dart';
+import 'package:nyue/views/book_detail/main.dart';
 
 class BookCity extends StatefulWidget {
   BookCity({Key key}) : super(key: key);
@@ -44,7 +44,12 @@ class _BookCityState extends State<BookCity> {
                 goMore: (){
                   // TODO: 跳转到对应category页面
                 },
-                refreshCategory: this.refreshCategory
+                refreshCategory: this.refreshCategory,
+                gotoBookDetail: (int novelId) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) {
+                    return BookDetail(bookId: novelId);
+                  }));
+                }
             ),
           ),
           separatorBuilder: (context, index) {

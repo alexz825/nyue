@@ -12,8 +12,8 @@ import 'package:nyue/views/uikit/AnimateRefreshIcon.dart';
 class BookCityCardActionHandler {
   VoidCallback goMore;
   Future<bool> Function(String category, int categoryId) refreshCategory;
-
-  BookCityCardActionHandler({this.goMore, this.refreshCategory});
+  void Function(int novelId) gotoBookDetail;
+  BookCityCardActionHandler({this.goMore, this.refreshCategory, this.gotoBookDetail});
 }
 
 // 自定义card里面grid view高度
@@ -202,7 +202,14 @@ class BookCityCard extends StatelessWidget {
             gridDelegate: gridDelegate,
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            children: this.data.bookList.map((e) => _BookItemCard(data: e,)).toList(),
+            children: this.data.bookList.map((e) {
+              return GestureDetector(
+                onTap: () {
+                  return this.handler.gotoBookDetail(e.bookId);
+                },
+                child: _BookItemCard(data: e,),
+              );
+            }).toList(),
           ),
           _CardBottom(
             goMore: this.handler.goMore,

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nyue/views/book_city/book_city.dart';
 import 'package:nyue/shelf/shelf.dart';
+import 'package:nyue/views/book_detail/main.dart';
 
 class TempView extends StatelessWidget {
   @override
@@ -56,6 +57,9 @@ class HomeTabbarState extends State<HomeTabbar> with SingleTickerProviderStateMi
     return new MaterialApp(
       color: Colors.white,
       home: Scaffold(
+        appBar: AppBar(
+          title: Text("看书呢"),
+        ),
         body: SafeArea(
           child: SizedBox.expand(
             child: TabBarView(
