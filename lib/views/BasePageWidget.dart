@@ -95,17 +95,9 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
 
   @override
   Widget build(BuildContext context) {
-
-    // return FutureBuilder(
-    //   future: widget.loadData(context),
-    //   builder: () {
-    //     return Text("ss");
-    //   },
-    // );
-
     return FutureBuilder(
         future: widget.loadData(context),
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
               break;
@@ -138,7 +130,6 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
           }
         });
   }
-
 
   @override
   void retryCall() {

@@ -1,61 +1,65 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:nyue/network/api_list.dart';
 import 'package:nyue/views/BasePageWidget.dart';
+import 'package:nyue/data/book_detail.dart';
 
 ///实现抽象方法，直接给界面复制
-class CommonWidget extends NetNormalWidget<String> {
+class _BookDetailWidget extends NetNormalWidget<BookDetail> {
   @override
-  Widget buildContainer(String t) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(t),
-          Text(t + "sss"),
-        ],
-      ),
+  Widget buildContainer(BookDetail data) {
+    return ListView(
+      children: [
+        Container(
+          child: Flex(
+            direction: Axis.horizontal,
+            children: [
+              Image.network(data.coverImg),
+
+              Container(
+                margin: EdgeInsets.fromLTRB(15, 0, 0, 0),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class BookDetail extends StatefulWidget {
+class BookDetailPage extends StatefulWidget {
   int bookId;
-  BookDetail({Key key, @required this.bookId}) : super(key: key);
+  BookDetailPage({Key key, @required this.bookId}) : super(key: key);
   @override
-  State<StatefulWidget> createState() => _BookDetailState();
+  State<StatefulWidget> createState() => _BookDetailPageState();
 }
 
-class _BookDetailState extends State<BookDetail> {
+class _BookDetailPageState extends State<BookDetailPage> {
+
+  String title = "书籍详情";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${widget.bookId}"),
+        title: Text("${title}"),
       ),
-      body: FutureBuilderWidget(
-        commonWidget: CommonWidget(),
+      body: FutureBuilderWidget<BookDetail>(
+        commonWidget: _BookDetailWidget(),
         loadData: _loadData,
       )
-      // Center(
-      //   child: Text("详情页${widget.bookId}"),
-      // ),
     );
   }
 
   ///网络请求库
-  Future<dynamic> _loadData(BuildContext context) async {
-
-    await Future.delayed(Duration(seconds: 1), (){
-      print('延时1s执行');
+  Future<BookDetail> _loadData(BuildContext context) async {
+    var res = await HttpUtil.getBookDetail(widget.bookId, BookDetail.fromRawJson).catchError((error) {
+      print(error);
     });
-    throw Error();
-    return "ssss";
-  }
-
-  @override
-  void retryCall() {
-    Navigator.of(context).pop();
+    // this.setState(() {
+    //   this.title = res.title;
+    // });
+    return res;
   }
 }

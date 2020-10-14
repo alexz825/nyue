@@ -47,7 +47,7 @@ class _BookCityState extends State<BookCity> {
                 refreshCategory: this.refreshCategory,
                 gotoBookDetail: (int novelId) {
                   Navigator.push(context, MaterialPageRoute(builder: (_) {
-                    return BookDetail(bookId: novelId);
+                    return BookDetailPage(bookId: novelId);
                   }));
                 }
             ),

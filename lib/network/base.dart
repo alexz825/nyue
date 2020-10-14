@@ -78,8 +78,7 @@ class Http {
       }) async {
     var time = DateTime.now().millisecondsSinceEpoch;
     if ((time - lastTime) / 1000 < 10) {
-      // 10s内只能请求一次
-      return "";
+      throw "10s 内只能请求一次";
     }
     lastTime = time;
     Options requestOptions = options ?? Options();
@@ -95,6 +94,8 @@ class Http {
         options: requestOptions);
 
     var jsonValue = response.data;
+    print(response.request.uri.toString());
+
     if (!(jsonValue is Map<String, dynamic>)) {
       jsonValue = json.decode(jsonValue);
     }

@@ -1,5 +1,6 @@
 
 import 'package:nyue/data/book_city_item.dart';
+import 'package:nyue/data/book_detail.dart';
 import 'package:nyue/data/book_list_item.dart';
 import 'package:nyue/network/base.dart';
 import 'package:nyue/network/const.dart';
@@ -32,5 +33,15 @@ class HttpUtil {
       var data = Map<String, dynamic>.from(e);
       return convert(e) as BookListItem;
     }));
+  }
+
+  static Future<BookDetail> getBookDetail(int bookId, ModelJsonConvert convert) async {
+    var res = await Http().get(
+        BAPI.getBookDetail.value,
+        params: {"bookId": bookId},
+        keypath: ""
+    );
+    var value = Map<String, dynamic>.from(res);
+    return convert(value) as BookDetail;
   }
 }
