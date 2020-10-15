@@ -77,10 +77,14 @@ class NetErrorWidget extends StatelessWidget {
 }
 
 class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with ErrorCallback {
+
+  bool isRequesting = false;
+  Future loadData;
+
   @override
   void initState() {
     super.initState();
-    widget.loadData(context);
+    this.request();
   }
   // 默认加载页面
   final defaultLoading = Center(
@@ -96,15 +100,13 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: widget.loadData(context),
+        future: this.request(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              break;
             case ConnectionState.waiting:
             case ConnectionState.active:
               return widget.loadingWidget ?? defaultLoading;
-            case ConnectionState.done:
+            default:
               if (snapshot.hasError) {
                 ///网络出错
                 if (widget.errorWidget != null) {
@@ -133,9 +135,19 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
 
   @override
   void retryCall() {
-    widget.loadData(context);
+    this.request();
     setState(() {
       ///通知State重新构建界面需要
+    });
+  }
+
+  Future request() {
+    if (this.isRequesting && this.loadData != null) {
+      return this.loadData;
+    }
+    this.isRequesting = true;
+    this.loadData = widget.loadData(context).whenComplete(() {
+      this.isRequesting = false;
     });
   }
 }
