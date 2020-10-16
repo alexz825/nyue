@@ -40,6 +40,8 @@ enum BAPI {
   getSpecialList,
   getDiscoveryAll, // 发现页分类内容
   getBookDetail, // 获取书籍详情
+  getChapterList, // 获取书籍章节列表
+  getChapterCotent, // 获取章节内容
 }
 
 extension ParseToAPIString on BAPI {
@@ -53,6 +55,10 @@ extension ParseToAPIString on BAPI {
         return 'app/open/api/category/discoveryAll';
       case BAPI.getBookDetail:
         return 'app/open/api/book/getDetail';
+      case BAPI.getChapterList:
+        return 'app/open/api/chapter/getByBookId';
+      case BAPI.getChapterCotent:
+        return 'app/open/api/chapter/get';
       default:
         return '';
     }

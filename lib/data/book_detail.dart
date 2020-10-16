@@ -27,7 +27,7 @@ class BookDetail {
   final String desc;
   final List<BookListItem> recommend;
   final String title;
-  final BookChapter update;
+  final BookDetailChapter update;
   final String word;
 
   static fromRawJson(Map<String, dynamic> str) => BookDetail.fromJson(str);
@@ -43,7 +43,7 @@ class BookDetail {
     desc: json["desc"],
     recommend: List<BookListItem>.from(json["recommend"].map((x) => BookListItem.fromJson(x))),
     title: json["title"],
-    update: BookChapter.fromJson(json["update"]),
+    update: BookDetailChapter.fromJson(json["update"]),
     word: json["word"],
   );
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
@@ -94,7 +95,7 @@ class Http {
         options: requestOptions);
 
     var jsonValue = response.data;
-    print(response.request.uri.toString());
+    print("get  " + response.request.uri.toString());
 
     if (!(jsonValue is Map<String, dynamic>)) {
       jsonValue = json.decode(jsonValue);
@@ -111,20 +112,51 @@ class Http {
     return res[keypath];
   }
 
-  // /// restful post 操作
-  // Future post(
-  //     String path, {
-  //       Map<String, dynamic> params,
-  //       data,
-  //       Options options = null,
-  //     }) async {
-  //   Options requestOptions = options ?? Options();
-  //
-  //   var response = await dio.post(path,
-  //       data: data,
-  //       queryParameters: params,
-  //       options: requestOptions);
-  //   return response.data;
-  // }
+  /// restful get 操作
+  Future post(
+      String path, {
+        Map<String, dynamic> params,
+        String keypath = "",
+        Options options = null,
+        bool noCache = !CACHE_ENABLE,
+        String cacheKey = "",
+        bool cacheDisk = false,
+      }) async {
+    var time = DateTime.now().millisecondsSinceEpoch;
+    if ((time - lastTime) / 1000 < 10) {
+      throw "10s 内只能请求一次";
+    }
+    lastTime = time;
+    Options requestOptions = options ?? Options();
+    requestOptions = requestOptions.merge(extra: {
+      "noCache": noCache,
+      "cacheKey": cacheKey.length == 0 ? path + params.toString() : cacheKey,
+      "cacheDisk": cacheDisk,
+    });
+
+    requestOptions.contentType = "application/json";
+    Response response;
+
+    response = await dio.post(path,
+        data: params,
+        options: requestOptions);
+
+    var jsonValue = response.data;
+    print("post  " + response.request.uri.toString());
+
+    if (!(jsonValue is Map<String, dynamic>)) {
+      jsonValue = json.decode(jsonValue);
+    }
+    print(jsonValue);
+    var entity = ResultEntity.fromRawJson(jsonValue["result"]);
+    if (entity.code != 0) {
+      throw ResponseError(entity.msg);
+    }
+    var res = Map<String, dynamic>.from(jsonValue["data"]);
+    if (keypath.length == 0) {
+      return res;
+    }
+    return res[keypath];
+  }
 
 }

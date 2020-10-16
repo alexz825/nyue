@@ -136,22 +136,6 @@ class _BookDetailWidget extends NetNormalWidget<BookDetail> {
                   ],
                 )
             ),
-            // Stack(
-            //   alignment: Alignment.center,
-            //   children: [
-            //     Container(
-            //       padding: EdgeInsets.only(left: 20, right: 20),
-            //       decoration: BoxDecoration(
-            //           color: Colors.green,
-            //           borderRadius: BorderRadius.all(Radius.circular(20))
-            //       ),
-            //     ),
-            //     Positioned(
-            //       // top: -10,
-            //       child: Center(child: Text("开始阅读", style: TextStyle(fontSize: 17, color: Colors.white), ),),
-            //     )
-            //   ],
-            // )
             Container(
                 height: 40,
                 child: Flex(
@@ -162,6 +146,11 @@ class _BookDetailWidget extends NetNormalWidget<BookDetail> {
                         child: GestureDetector(
                           onTap: () {
                             // TODO: 开始阅读
+                            HttpUtil.getChapterContent(50563, [1257059030384361473]).then((value) {
+                              print(value);
+                            }).catchError((e){
+                              print(e);
+                            });
                           },
                           child: Container(
                             child: Center(
@@ -218,9 +207,6 @@ class _BookDetailPageState extends State<BookDetailPage> {
     var res = await HttpUtil.getBookDetail(widget.bookId, BookDetail.fromRawJson).catchError((error) {
       print(error);
     });
-    // this.setState(() {
-    //   this.title = res.title;
-    // });
     return res;
   }
 }
