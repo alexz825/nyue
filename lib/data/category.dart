@@ -50,8 +50,6 @@ class Category {
     this.type,
   });
 
-  static Category defaultData = Category.fromRawJson(_ALL_CATEGORIES);
-
   final String name;
   final String type;
 
@@ -69,3 +67,26 @@ class Category {
     "type": type,
   };
 }
+
+class AllCategories {
+  AllCategories({
+    this.gender,
+    this.category,
+    this.rank
+  });
+
+  static AllCategories defaultData = AllCategories._fromRawJson(_ALL_CATEGORIES);
+
+  final List<Category> gender;
+  final List<Category> category;
+  final List<Category> rank;
+
+  static _fromRawJson(Map<String, dynamic> str) => AllCategories.fromJson(str);
+
+  factory AllCategories.fromJson(Map<String, dynamic> json) => AllCategories(
+    gender: json["gender"],
+    category: json["category"],
+    rank: json["rank"],
+  );
+}
+

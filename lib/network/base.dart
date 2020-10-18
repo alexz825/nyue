@@ -9,8 +9,7 @@ import 'exception.dart';
 import 'cache.dart';
 typedef T ModelJsonConvert<T>(Map<String, dynamic> json);
 
-const _HTTP_ENDPOINT = "http://yuenov.com:15555/";
-int lastTime = 0;
+const _HTTP_ENDPOINT = "https://shuapi.jiaston.com/";
 
 class Http {
   ///超时时间
@@ -77,11 +76,7 @@ class Http {
         String cacheKey = "",
         bool cacheDisk = false,
       }) async {
-    var time = DateTime.now().millisecondsSinceEpoch;
-    if ((time - lastTime) / 1000 < 10) {
-      throw "10s 内只能请求一次";
-    }
-    lastTime = time;
+
     Options requestOptions = options ?? Options();
     requestOptions = requestOptions.merge(extra: {
       "noCache": noCache,
@@ -98,18 +93,27 @@ class Http {
     print("get  " + response.request.uri.toString());
 
     if (!(jsonValue is Map<String, dynamic>)) {
+      var arrayWithCommaEndRegex = "},]";
+      if (jsonValue is String && (jsonValue as String).contains(arrayWithCommaEndRegex)) {
+        jsonValue = (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
+      }
       jsonValue = json.decode(jsonValue);
     }
 
-    var entity = ResultEntity.fromRawJson(jsonValue["result"]);
-    if (entity.code != 0) {
-      throw ResponseError(entity.msg);
+    var entity = ResultEntity.fromRawJson(jsonValue);
+    if (entity.status != 1) {
+      throw ResponseError(entity.info);
     }
-    var res = Map<String, dynamic>.from(jsonValue["data"]);
-    if (keypath.length == 0) {
+
+    var res = jsonValue["data"];
+    if (res is List<dynamic>) {
       return res;
     }
-    return res[keypath];
+    var resMap = Map<String, dynamic>.from(res);
+    if (keypath.length == 0) {
+      return resMap;
+    }
+    return resMap[keypath];
   }
 
   /// restful get 操作
@@ -122,11 +126,6 @@ class Http {
         String cacheKey = "",
         bool cacheDisk = false,
       }) async {
-    var time = DateTime.now().millisecondsSinceEpoch;
-    if ((time - lastTime) / 1000 < 10) {
-      throw "10s 内只能请求一次";
-    }
-    lastTime = time;
     Options requestOptions = options ?? Options();
     requestOptions = requestOptions.merge(extra: {
       "noCache": noCache,
@@ -148,9 +147,9 @@ class Http {
       jsonValue = json.decode(jsonValue);
     }
     print(jsonValue);
-    var entity = ResultEntity.fromRawJson(jsonValue["result"]);
-    if (entity.code != 0) {
-      throw ResponseError(entity.msg);
+    var entity = ResultEntity.fromRawJson(jsonValue);
+    if (entity.status != 1) {
+      throw ResponseError(entity.info);
     }
     var res = Map<String, dynamic>.from(jsonValue["data"]);
     if (keypath.length == 0) {

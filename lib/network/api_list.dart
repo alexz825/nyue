@@ -1,67 +1,82 @@
 
+import 'package:nyue/data/book.dart';
+import 'package:nyue/data/chapter.dart';
+import 'package:nyue/data/search_result.dart';
 import 'package:nyue/network/base.dart';
 import 'package:nyue/network/const.dart';
 
 const _PAGE_SIZE = 20;
 
-class HttpUtil {
+// api网页 https://www.cnblogs.com/maopixin/p/10457015.html#a1 搜索的还没加
 
-  // static Future<List<BookCityCardModel>> getCategoryDiscovery(int page, ModelJsonConvert convert) async {
-  //   List res = await Http().get(
-  //       BAPI.categoryDiscover.value,
-  //       params: {"pageSize": _PAGE_SIZE, "pageNum": page},
-  //       keypath: "list"
-  //       );
-  //
-  //   return List<BookCityCardModel>.from(res.toList().map((e) {
-  //     var data = Map<String, dynamic>.from(e);
-  //     return convert(e) as BookCityCardModel;
-  //   }));
-  // }
-  //
-  // static Future<List<BookListItem>> getDiscoveryAll(int page, String type, ModelJsonConvert convert, {int pageSize = _PAGE_SIZE, int categoryId = 0}) async {
-  //   List res = await Http().get(
-  //       BAPI.getDiscoveryAll.value,
-  //       params: {"pageSize": pageSize, "pageNum": page, "type": type, "categoryId": categoryId},
-  //       keypath: "list"
-  //   );
-  //
-  //   return List<BookListItem>.from(res.toList().map((e) {
-  //     var data = Map<String, dynamic>.from(e);
-  //     return convert(e) as BookListItem;
-  //   }));
-  // }
-  //
-  // static Future<BookDetail> getBookDetail(int bookId, ModelJsonConvert convert) async {
-  //   var res = await Http().get(
-  //       BAPI.getBookDetail.value,
-  //       params: {"bookId": bookId},
-  //       keypath: ""
-  //   );
-  //   var value = Map<String, dynamic>.from(res);
-  //   return convert(value) as BookDetail;
-  // }
-  //
-  // /**
-  //  * bookId: 书籍id
-  //  * chapterId: [可选] 从第几章节开始获取
-  //  */
-  // static Future<List<Chapter>> getChapterList(int bookId, {double chapterId}) async {
-  //   List res = await Http().get(
-  //       BAPI.getChapterList.value,
-  //       params: {"bookId": bookId, "chapterId": chapterId},
-  //       keypath: "chapters"
-  //   );
-  //   return List<Chapter>.from(res.toList().map((e) => Chapter.fromRawJson(Map<String, dynamic>.from(e))));
-  // }
-  //
-  // static Future<List<ChapterContent>> getChapterContent(int bookId, List<int> chapterIdList) async {
-  //   List res = await Http().post(
-  //       BAPI.getChapterCotent.value,
-  //       params: {"bookId": bookId, "chapterIdList": chapterIdList},
-  //       keypath: "list"
-  //   );
-  //
-  //   return List<ChapterContent>.from(res.toList().map((e) => ChapterContent.fromRawJson(e)));
-  // }
+class HttpUtil {
+  /**
+   * 根据分类获取对应bookList
+   */
+  static Future<List<BaseBookModel>> getCategory(String gender, String category, String rank, int page) async {
+
+    List res = await Http().get(
+      "top/${gender}/top/${category}/${rank}/${page}.html",
+        keypath: "BookList"
+    );
+
+    return List<BaseBookModel>.from(res.toList().map((e) => BaseBookModel.fromMap(e)));
+  }
+
+  /**
+   * 获取书籍详情
+   */
+  static Future<BookModel> getBookDetail(int bookId) async {
+
+    Map<String, dynamic> res = await Http().get(
+        "info/${bookId}.html",
+        keypath: ""
+    );
+
+    return BookModel.fromMap(res);
+  }
+
+  /**
+   * 获取 章节内容
+   * bookId: 书籍id
+   * chapterId: chapterId
+   */
+  static Future<ChapterContent> getChapterContent(int bookId, int chapterId) async {
+
+    Map<String, dynamic> res = await Http().get(
+        "book/${bookId}/${chapterId}.html",
+        keypath: ""
+    );
+
+    return ChapterContent.fromMap(res);
+  }
+
+  /**
+   * 获取 章节目录
+   * bookId: 书籍id
+   */
+  static Future<List<ChapterWrapper>> getChapterList(int bookId) async {
+
+    List res = await Http().get(
+        "book/${bookId}/",
+        keypath: "list"
+    );
+
+    return List<ChapterWrapper>.from(res.toList().map((e) => ChapterWrapper.fromMap(e)));
+  }
+
+/**
+ * 搜索
+ */
+  static Future<List<SearchResultItem>> search(String keyword, int page) async {
+
+    List res = await Http().get(
+        "search.aspx?key=${keyword}&page=${page}&siteid=app",
+        keypath: ""
+    );
+
+    return List<SearchResultItem>.from(res.toList().map((e) => SearchResultItem.fromMap(e)));
+  }
+
+
 }
