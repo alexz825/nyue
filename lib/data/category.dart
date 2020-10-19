@@ -1,4 +1,3 @@
-
 const _ALL_CATEGORIES = {
   "gender": [
     {
@@ -6,7 +5,7 @@ const _ALL_CATEGORIES = {
       "name": "男"
     },
     {
-      "type": "laydy",
+      "type": "lady",
       "name": "女"
     },
   ],
@@ -75,18 +74,30 @@ class AllCategories {
     this.rank
   });
 
-  static AllCategories defaultData = AllCategories._fromRawJson(_ALL_CATEGORIES);
+  static List<List<Category>> defaultData() {
+    var cate = AllCategories.fromJson(_ALL_CATEGORIES);
+    return [cate.gender, cate.category, cate.rank];
+  }
+
+  static AllCategories all() => AllCategories.fromJson(_ALL_CATEGORIES);
 
   final List<Category> gender;
   final List<Category> category;
   final List<Category> rank;
 
-  static _fromRawJson(Map<String, dynamic> str) => AllCategories.fromJson(str);
-
-  factory AllCategories.fromJson(Map<String, dynamic> json) => AllCategories(
-    gender: json["gender"],
-    category: json["category"],
-    rank: json["rank"],
-  );
+  factory AllCategories.fromJson(Map<String, dynamic> json) {
+    return AllCategories(
+      gender: List<Category>.from(json["gender"].map((e) => Category.fromJson(e))),
+      category: List<Category>.from(json["category"].map((e) => Category.fromJson(e))),
+      rank: List<Category>.from(json["rank"].map((e) => Category.fromJson(e))),
+    );
+  }
 }
 
+class SelectedCategoryItem {
+  String gender;
+  String category;
+  String rank;
+  SelectedCategoryItem(this.gender, this.category, this.rank);
+  static SelectedCategoryItem defaultItem = SelectedCategoryItem("man", "hot", "week");
+}
