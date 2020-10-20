@@ -1,112 +1,168 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nyue/data/book.dart';
 import 'package:nyue/data/category.dart';
 import 'package:nyue/network/api_list.dart';
 
-class BookCity extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _BookCityState();
+class _BookCityUIProperty {
+  static final categoryLineHeight = 100.0;
+  static double get categoryCornerRadius {
+    return (categoryLineHeight -
+            categoryScrollViewInset.top -
+            categoryScrollViewInset.bottom -
+            categaryButtonInset.top -
+            categaryButtonInset.bottom) /
+        2;
   }
+
+  static final categaryButtonInset = EdgeInsets.only(left: 10, right: 10);
+  static final categoryScrollViewInset = EdgeInsets.fromLTRB(10, 0, 10, 0);
 }
 
-class _BookCityState extends State<BookCity> {
+final _defaultSelectedItem = BookCityState("man", "hot", "week", 0);
+final _allCategorires = AllCategories.defaultData();
 
+class BookCityState {
+  BookCityState(this.gender, this.category, this.rank, this.page);
+  String gender;
+  String category;
+  String rank;
+  int page;
+  List<BaseBookModel> items = [];
 
-  List<List<Category>> categoriesData = [];
-  List<Category> selected;
-  int page = 1;
+  List<String> get selected => [this.gender, this.category, this.rank];
 
-  @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        //头部
-        // SliverAppBar(
-        //   pinned: true,
-        //   flexibleSpace: FlexibleSpaceBar(
-        //     title: Text('水平横向滑动'),
-        //   ),
-        // ),
-        //横向滑动区域
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-            height: 200,
-            child: Column(
-              children: List<Widget>.from(this.categoriesData.map((sectionData) {
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: sectionData.length,
-                  itemBuilder: (context, row) {
-                    var category = sectionData[row];
-                    return Container(
-                      height: 40,
-                      child: Text(category.name),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          color: Colors.green
-                      ),
-                    );
-                  },
-                );
-              })),
-            )
-          )
-        ),
-
-        //垂直列表
-        SliverList(
-          delegate: SliverChildBuilderDelegate((content, index) {
-            return Card(
-              color: Colors.primaries[index % Colors.primaries.length],
-              child: Container(
-                height: 100,
-                alignment: Alignment.center,
-                child: Text(index.toString()),
-              ),
-            );
-          }, childCount: 30),
-        )
-
-      ],
-    );
-  }
-
-  @override
-  void initState() {
-    this.categoriesData = AllCategories.defaultData();
-    if (this.selected == null) {
-      this.selected = [this.categoriesData[0][0], this.categoriesData[1][0], this.categoriesData[2][0]];
+  BookCityState update(
+      {String gender, String category, String rank, int page}) {
+    var newState =
+        BookCityState(this.gender, this.category, this.rank, this.page);
+    if (gender != null) {
+      newState.gender = gender;
     }
-    this.setState(() {
 
-    });
-    // HttpUtil.getCategory("lady", "commend", "month", 1).then((value) {
-    //   print(value);
-    // }).catchError((e) {
-    //   print(e);
-    // });
-  }
+    if (category != null) {
+      newState.category = category;
+    }
 
-  request() {
-    HttpUtil.getCategory(this.selected[0].type, this.selected[1].type, this.selected[2].type, this.page).then((value) {
-      // TODO: 刷新页面
-    }).catchError(() {
+    if (rank != null) {
+      newState.rank = rank;
+    }
 
-    });
+    if (page != null) {
+      newState.page = page;
+    }
+
+    return newState;
   }
 }
 
-class _CategoryItem extends StatefulWidget {
+class BookCityCubit extends Cubit<BookCityState> {
+  BookCityCubit() : super(_defaultSelectedItem);
 
-  @override
-  State<StatefulWidget> createState() => _CategoryItemState();
+  void selectGender(String gender) =>
+      emit(BookCityState(gender, state.category, state.rank, 1));
+  void selectCategory(String category) =>
+      emit(BookCityState(state.gender, category, state.rank, 1));
+  void selectRank(String rank) =>
+      emit(BookCityState(state.gender, state.category, rank, 1));
+
+  void loadMore() => emit(
+      BookCityState(state.gender, state.category, state.rank, state.page + 1));
+  void refresh() =>
+      emit(BookCityState(state.gender, state.category, state.rank, 1));
 }
 
-class _CategoryItemState extends State<_CategoryItem> {
+class BookCity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<BookCityCubit, BookCityState>(
+        cubit: BookCityCubit(),
+        builder: (context, state) {
+          return CustomScrollView(
+            slivers: <Widget>[
+              //头部
+              // SliverAppBar(
+              //   pinned: true,
+              //   flexibleSpace: FlexibleSpaceBar(
+              //     title: Text('水平横向滑动'),
+              //   ),
+              // ),
 
+              SliverList(
+                  delegate: SliverChildBuilderDelegate((content, section) {
+                var sectionData = _allCategorires[section];
+                return Container(
+                  height: 40,
+                  child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: sectionData.length,
+                      separatorBuilder: (context, index) {
+                        return VerticalDivider(
+                          width: 10,
+                          color: Color(0x00ffffff),
+                        );
+                      },
+                      itemBuilder: (c, item) {
+                        var itemData = sectionData[item];
+                        var isSelected =
+                            itemData.type == state.selected[section];
+                        return GestureDetector(
+                          onTap: () {
+                            var bloc = context.bloc<BookCityCubit>();
+                            switch (section) {
+                              case 0:
+                                bloc.selectGender(itemData.type);
+                                break;
+                              case 1:
+                                bloc.selectCategory(itemData.type);
+                                break;
+                              case 2:
+                                bloc.selectRank(itemData.type);
+                                break;
+                              default:
+                                break;
+                            }
+                          },
+                          child: Container(
+                              padding: _BookCityUIProperty.categaryButtonInset,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(
+                                      Radius.circular(_BookCityUIProperty
+                                          .categoryCornerRadius)),
+                                  color: isSelected
+                                      ? Colors.green
+                                      : Color(0x00ffffff)),
+                              child: Center(
+                                child: Text(
+                                  sectionData[item].name,
+                                  style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Color(0xff333333),
+                                      fontSize: 13),
+                                ),
+                              )),
+                        );
+                      }),
+                );
+              }, childCount: _allCategorires.length)),
+
+              //垂直列表
+              SliverList(
+                delegate: SliverChildBuilderDelegate((content, index) {
+                  return Card(
+                    color: Colors.primaries[index % Colors.primaries.length],
+                    child: Container(
+                      height: 100,
+                      alignment: Alignment.center,
+                      child: Text(index.toString()),
+                    ),
+                  );
+                }, childCount: 30),
+              )
+            ],
+          );
+        });
   }
 }

@@ -1,9 +1,7 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nyue/views/book_city.dart';
-import 'package:nyue/shelf/shelf.dart';
+import 'package:nyue/views/shelf/shelf.dart';
 
 class TempView extends StatelessWidget {
   @override
@@ -38,7 +36,8 @@ class HomeTabbar extends StatefulWidget {
   State<StatefulWidget> createState() => new HomeTabbarState();
 }
 
-class HomeTabbarState extends State<HomeTabbar> with SingleTickerProviderStateMixin {
+class HomeTabbarState extends State<HomeTabbar>
+    with SingleTickerProviderStateMixin {
   TabController controller;
   @override
   void initState() {
@@ -63,28 +62,32 @@ class HomeTabbarState extends State<HomeTabbar> with SingleTickerProviderStateMi
           child: SizedBox.expand(
             child: TabBarView(
               controller: controller,
-              children: [
-                ShelfWidget(),
-                BookCity(),
-                new TempView()
-              ],
+              children: [ShelfWidget(), BookCity(), new TempView()],
             ),
           ),
         ),
         bottomNavigationBar: new Material(
-          color: Colors.white,
-          child: SafeArea(
-            child: new TabBar(
-                controller: controller,
-                labelColor: Colors.deepPurpleAccent,
-                unselectedLabelColor: Colors.black26,
-                tabs: [
-                  Tab(text: "书架", icon: Icon(Icons.book),),
-                  Tab(text: "书城", icon: Icon(Icons.store),),
-                  Tab(text: "设置", icon: Icon(Icons.settings),),
-                ]),
-          )
-        ),
+            color: Colors.white,
+            child: SafeArea(
+              child: new TabBar(
+                  controller: controller,
+                  labelColor: Colors.deepPurpleAccent,
+                  unselectedLabelColor: Colors.black26,
+                  tabs: [
+                    Tab(
+                      text: "书架",
+                      icon: Icon(Icons.book),
+                    ),
+                    Tab(
+                      text: "书城",
+                      icon: Icon(Icons.store),
+                    ),
+                    Tab(
+                      text: "设置",
+                      icon: Icon(Icons.settings),
+                    ),
+                  ]),
+            )),
       ),
     );
   }
