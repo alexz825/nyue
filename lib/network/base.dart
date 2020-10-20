@@ -20,6 +20,7 @@ class Http {
   factory Http() => _instance;
 
   Dio dio;
+  Map<String, CancelToken> _cancelToken = {};
 
   Http._internal() {
     if (dio == null) {
@@ -83,37 +84,20 @@ class Http {
       "cacheKey": cacheKey.length == 0 ? path + params.toString() : cacheKey,
       "cacheDisk": cacheDisk,
     });
-
+    var ctoken = CancelToken();
+    this.storeCancelToken(path, ctoken, params: params);
     Response response;
-    response = await dio.get(path,
+    response = await dio.get(
+        path,
         queryParameters: params,
-        options: requestOptions);
-
+        options: requestOptions,
+        cancelToken: ctoken
+    );
+    this.storeCancelToken(path, null, params: params);
     var jsonValue = response.data;
     print("get  " + response.request.uri.toString());
 
-    if (!(jsonValue is Map<String, dynamic>)) {
-      var arrayWithCommaEndRegex = "},]";
-      if (jsonValue is String && (jsonValue as String).contains(arrayWithCommaEndRegex)) {
-        jsonValue = (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
-      }
-      jsonValue = json.decode(jsonValue);
-    }
-
-    var entity = ResultEntity.fromRawJson(jsonValue);
-    if (entity.status != 1) {
-      throw ResponseError(entity.info);
-    }
-
-    var res = jsonValue["data"];
-    if (res is List<dynamic>) {
-      return res;
-    }
-    var resMap = Map<String, dynamic>.from(res);
-    if (keypath.length == 0) {
-      return resMap;
-    }
-    return resMap[keypath];
+    return this.processResponseData(jsonValue, keypath);
   }
 
   /// restful get 操作
@@ -133,29 +117,60 @@ class Http {
       "cacheDisk": cacheDisk,
     });
 
+    var ctoken = CancelToken();
+    this.storeCancelToken(path, ctoken, params: params);
+
     requestOptions.contentType = "application/json";
     Response response;
 
-    response = await dio.post(path,
+    response = await dio.post(
+        path,
         data: params,
-        options: requestOptions);
-
+        options: requestOptions,
+        cancelToken: ctoken);
+    this.storeCancelToken(path, null, params: params);
     var jsonValue = response.data;
     print("post  " + response.request.uri.toString());
 
+    return this.processResponseData(jsonValue, keypath);
+  }
+
+  dynamic processResponseData(jsonValue, String keypath) {
     if (!(jsonValue is Map<String, dynamic>)) {
+      var arrayWithCommaEndRegex = "},]";
+      if (jsonValue is String && (jsonValue as String).contains(arrayWithCommaEndRegex)) {
+        jsonValue = (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
+      }
       jsonValue = json.decode(jsonValue);
     }
-    print(jsonValue);
+
     var entity = ResultEntity.fromRawJson(jsonValue);
     if (entity.status != 1) {
       throw ResponseError(entity.info);
     }
+
     var res = Map<String, dynamic>.from(jsonValue["data"]);
     if (keypath.length == 0) {
       return res;
     }
+
     return res[keypath];
   }
 
+  void storeCancelToken(String path, CancelToken token, {Map<String, dynamic> params}) {
+    var key = path + (params == null ? "" : params.toString());
+    if (token == null) {
+      this._cancelToken.remove(key);
+      return;
+    }
+    this._cancelToken[key] = token;
+  }
+
+  void cancelRequest(String path, {Map<String, dynamic> params}) {
+    var token = this._cancelToken[path + (params == null ? "" : params.toString())];
+    if (token != null) {
+      token.cancel("cancel by user");
+      this.storeCancelToken(path, null);
+    }
+  }
 }

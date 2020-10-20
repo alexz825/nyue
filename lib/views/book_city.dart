@@ -60,109 +60,153 @@ class BookCityState {
 class BookCityCubit extends Cubit<BookCityState> {
   BookCityCubit() : super(_defaultSelectedItem);
 
-  void selectGender(String gender) =>
-      emit(BookCityState(gender, state.category, state.rank, 1));
-  void selectCategory(String category) =>
-      emit(BookCityState(state.gender, category, state.rank, 1));
-  void selectRank(String rank) =>
-      emit(BookCityState(state.gender, state.category, rank, 1));
+  void selectGender(String gender) {
+    HttpUtil.cancelPreviosCategoryRequest(state.gender, state.category, state.rank, state.page);
+    var newState = BookCityState(gender, state.category, state.rank, 1);
+    emit(newState);
+    request(newState);
+  }
+
+  void selectCategory(String category) {
+    HttpUtil.cancelPreviosCategoryRequest(state.gender, state.category, state.rank, state.page);
+    var newState = BookCityState(state.gender, category, state.rank, 1);
+    emit(newState);
+    request(newState);
+  }
+
+  void selectRank(String rank) {
+    HttpUtil.cancelPreviosCategoryRequest(state.gender, state.category, state.rank, state.page);
+    var newState = BookCityState(state.gender, state.category, rank, 1);
+    emit(newState);
+    request(newState);
+  }
 
   void loadMore() => emit(
       BookCityState(state.gender, state.category, state.rank, state.page + 1));
   void refresh() =>
       emit(BookCityState(state.gender, state.category, state.rank, 1));
+
+  void request(BookCityState state) {
+    HttpUtil.getCategory(state.gender, state.category, state.rank, state.page).then((value) {
+      if (state.page <= 1) {
+        state.items = value;
+        emit(state);
+      } else {
+        state.items.addAll(value);
+        emit(state);
+      }
+    }).catchError((e) {
+      // TODO: 创建error组件
+    });
+  }
 }
 
 class BookCity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BookCityCubit, BookCityState>(
-        cubit: BookCityCubit(),
+    return BlocProvider(
+      create: (_) => BookCityCubit(),
+      child: buildContentView(),
+    );
+  }
+
+  Widget buildContentView() {
+    // var bloc = context.bloc<BookCityCubit>();
+    // var state = bloc.state;
+    return CustomScrollView(
+      slivers: <Widget>[
+        //头部
+        // SliverAppBar(
+        //   pinned: true,
+        //   flexibleSpace: FlexibleSpaceBar(
+        //     title: Text('水平横向滑动'),
+        //   ),
+        // ),
+
+        SliverList(
+            delegate: SliverChildBuilderDelegate((content, section) {
+              return buildCategorySection(section);
+            }, childCount: _allCategorires.length)),
+
+        //垂直列表
+        SliverList(
+          delegate: SliverChildBuilderDelegate((content, index) {
+            return Card(
+              color: Colors.primaries[index % Colors.primaries.length],
+              child: Container(
+                height: 100,
+                alignment: Alignment.center,
+                child: Text(index.toString()),
+              ),
+            );
+          }, childCount: 10),
+        )
+      ],
+    );
+  }
+
+  Widget buildCategorySection(int section) {
+    var sectionData = _allCategorires[section];
+    return Container(
+      margin: section == 0 ? EdgeInsets.only(top: 10) : section == _allCategorires.length - 1 ? EdgeInsets.only(bottom: 5) : EdgeInsets.zero,
+      height: 30,
+      padding: EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
+      child: BlocBuilder<BookCityCubit, BookCityState>(
+        buildWhen: (previous, current) => previous.selected[section] != current.selected[section],
         builder: (context, state) {
-          return CustomScrollView(
-            slivers: <Widget>[
-              //头部
-              // SliverAppBar(
-              //   pinned: true,
-              //   flexibleSpace: FlexibleSpaceBar(
-              //     title: Text('水平横向滑动'),
-              //   ),
-              // ),
-
-              SliverList(
-                  delegate: SliverChildBuilderDelegate((content, section) {
-                var sectionData = _allCategorires[section];
-                return Container(
-                  height: 40,
-                  child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: sectionData.length,
-                      separatorBuilder: (context, index) {
-                        return VerticalDivider(
-                          width: 10,
-                          color: Color(0x00ffffff),
-                        );
-                      },
-                      itemBuilder: (c, item) {
-                        var itemData = sectionData[item];
-                        var isSelected =
-                            itemData.type == state.selected[section];
-                        return GestureDetector(
-                          onTap: () {
-                            var bloc = context.bloc<BookCityCubit>();
-                            switch (section) {
-                              case 0:
-                                bloc.selectGender(itemData.type);
-                                break;
-                              case 1:
-                                bloc.selectCategory(itemData.type);
-                                break;
-                              case 2:
-                                bloc.selectRank(itemData.type);
-                                break;
-                              default:
-                                break;
-                            }
-                          },
-                          child: Container(
-                              padding: _BookCityUIProperty.categaryButtonInset,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(_BookCityUIProperty
-                                          .categoryCornerRadius)),
-                                  color: isSelected
-                                      ? Colors.green
-                                      : Color(0x00ffffff)),
-                              child: Center(
-                                child: Text(
-                                  sectionData[item].name,
-                                  style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Color(0xff333333),
-                                      fontSize: 13),
-                                ),
-                              )),
-                        );
-                      }),
+          return ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: sectionData.length,
+              separatorBuilder: (context, index) {
+                return VerticalDivider(
+                  width: 5,
+                  color: Color(0x00ffffff),
                 );
-              }, childCount: _allCategorires.length)),
-
-              //垂直列表
-              SliverList(
-                delegate: SliverChildBuilderDelegate((content, index) {
-                  return Card(
-                    color: Colors.primaries[index % Colors.primaries.length],
-                    child: Container(
-                      height: 100,
-                      alignment: Alignment.center,
-                      child: Text(index.toString()),
-                    ),
-                  );
-                }, childCount: 30),
-              )
-            ],
-          );
-        });
+              },
+              itemBuilder: (context, item) {
+                var itemData = sectionData[item];
+                var isSelected =
+                    itemData.type == state.selected[section];
+                return GestureDetector(
+                  onTap: () {
+                    var bloc = context.bloc<BookCityCubit>();
+                    switch (section) {
+                      case 0:
+                        bloc.selectGender(itemData.type);
+                        break;
+                      case 1:
+                        bloc.selectCategory(itemData.type);
+                        break;
+                      case 2:
+                        bloc.selectRank(itemData.type);
+                        break;
+                      default:
+                        break;
+                    }
+                  },
+                  child: Container(
+                      padding: _BookCityUIProperty.categaryButtonInset,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(_BookCityUIProperty
+                                  .categoryCornerRadius)),
+                          color: isSelected
+                              ? Colors.green
+                              : Color(0x00ffffff)),
+                      child: Center(
+                        child: Text(
+                          sectionData[item].name,
+                          style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Color(0xff333333),
+                              fontSize: 13),
+                        ),
+                      )),
+                );
+              });
+        },
+      )
+    );
   }
 }

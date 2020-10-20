@@ -78,5 +78,8 @@ class HttpUtil {
     return List<SearchResultItem>.from(res.toList().map((e) => SearchResultItem.fromMap(e)));
   }
 
-
+  static void cancelPreviosCategoryRequest(String gender, String category, String rank, int page) {
+    var path = "top/${gender}/top/${category}/${rank}/${page}.html";
+    Http().cancelRequest(path);
+  }
 }
