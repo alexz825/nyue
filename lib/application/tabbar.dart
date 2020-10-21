@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:nyue/views/book_city.dart';
+import 'package:nyue/views/book_city/book_city.dart';
 import 'package:nyue/views/shelf/shelf.dart';
 
 class TempView extends StatelessWidget {

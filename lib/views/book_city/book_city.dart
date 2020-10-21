@@ -4,8 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/data/book.dart';
 import 'package:nyue/data/category.dart';
 import 'package:nyue/network/api_list.dart';
-import 'package:nyue/views/book_card.dart';
+import 'package:nyue/views/book_city/book_card.dart';
 import 'package:nyue/views/util/CustomGridLayout.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class _BookCityUIProperty {
   static final categoryLineHeight = 100.0;
@@ -60,6 +61,23 @@ class BookCityState {
   }
 }
 
+class BookCityStateInit extends BookCityState {
+  BookCityStateInit(String gender, String category, String rank, int page) : super(gender, category, rank, page);
+  @override
+  BookCityStateInit update({String gender, String category, String rank, int page}) {
+    var state = super.update(gender: gender, category: category, rank: rank, page: page);
+    return BookCityStateInit(state.gender, state.category, state.rank, state.page);
+  }
+}
+class BookCityStateLoadingEnd extends BookCityState {
+  BookCityStateLoadingEnd(String gender, String category, String rank, int page) : super(gender, category, rank, page);
+  @override
+  BookCityStateLoadingEnd update({String gender, String category, String rank, int page}) {
+    var state = super.update(gender: gender, category: category, rank: rank, page: page);
+    return BookCityStateLoadingEnd(state.gender, state.category, state.rank, state.page);
+  }
+}
+
 class BookCityCubit extends Cubit<BookCityState> {
   BookCityCubit() : super(_defaultSelectedItem);
 
@@ -87,13 +105,17 @@ class BookCityCubit extends Cubit<BookCityState> {
     request(newState);
   }
 
-  void loadMore() => emit(
-      BookCityState(state.gender, state.category, state.rank, state.page + 1));
-  void refresh() =>
-      emit(BookCityState(state.gender, state.category, state.rank, 1));
+  void loadMore() {
+    state.page += 1;
+    request(state);
+  }
+  void refresh() {
+    state.page = 1;
+    request(state);
+  }
 
-  void request(BookCityState state) {
-    var newState = state.update();
+  request(BookCityState state) async {
+    var newState = BookCityStateLoadingEnd(state.gender, state.category, state.rank, state.page);
     newState.items = state.items;
     HttpUtil.getCategory(state.gender, state.category, state.rank, state.page)
         .then((value) {
@@ -104,16 +126,24 @@ class BookCityCubit extends Cubit<BookCityState> {
         newState.items.addAll(value);
         emit(newState);
       }
-      emit(newState);
     }).catchError((e) {
-      var newState = state.update();
-      newState.errorString = e.toString();
+      if (newState.items != 0 && newState.page <= 1) {
+        newState.errorString = e.toString();
+      }
       emit(newState);
     });
   }
 }
 
-class BookCity extends StatelessWidget {
+class BookCity extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _BookCityState();
+}
+
+class _BookCityState extends State<BookCity> {
+
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -132,67 +162,62 @@ class BookCity extends StatelessWidget {
   Widget buildContentView() {
     // var bloc = context.bloc<BookCityCubit>();
     // var state = bloc.state;
-    // final bloc = BlocProvider.of<BookCityCubit>(context);
-    return CustomScrollView(
-      slivers: <Widget>[
-        //头部
-        // SliverAppBar(
-        //   pinned: true,
-        //   flexibleSpace: FlexibleSpaceBar(
-        //     title: Text('水平横向滑动'),
-        //   ),
-        // ),
 
-        SliverList(
-            delegate: SliverChildBuilderDelegate((context, section) {
-          return buildCategorySection(section);
-        }, childCount: _allCategorires.length)),
-
-        BlocBuilder<BookCityCubit, BookCityState>(
-          buildWhen: (previous, current) =>
-              previous.items.length != current.items.length ||
-              previous.items != current.items,
-          builder: (context, state) {
-            return SliverPadding(
-              padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-              sliver: SliverGrid(
-                gridDelegate: CustomGridLayout(4),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return BookCard(state.items[index]);
-                }, childCount: state.items.length),
-              ),
-            );
+    return BlocBuilder<BookCityCubit, BookCityState>(
+      builder: (context, state) {
+        var bloc = context.bloc<BookCityCubit>();
+        if (state is BookCityStateLoadingEnd) {
+          _refreshController.refreshCompleted();
+          _refreshController.loadComplete();
+        }
+        return SmartRefresher(
+          enablePullDown: true,
+          enablePullUp: true,
+          onRefresh: () {
+            bloc.refresh();
           },
-        ),
+          onLoading: () {
+            bloc.loadMore();
+          },
+          controller: _refreshController,
+          child: CustomScrollView(
+            slivers: <Widget>[
+              //头部
+              // SliverAppBar(
+              //   pinned: true,
+              //   flexibleSpace: FlexibleSpaceBar(
+              //     title: Text('水平横向滑动'),
+              //   ),
+              // ),
 
-        BlocBuilder<BookCityCubit, BookCityState>(
-          // buildWhen: (previous, current) => current.items.length == 0,
-          builder: (context, state) {
-            if (state.items.length != 0) {
-              return SliverList(
+              SliverList(
                   delegate: SliverChildBuilderDelegate((context, section) {
-                return Container(height: 0);
-              }, childCount: 0));
-            }
-            return SliverFillRemaining(
-                child: Center(
-              child: Flex(
-                direction: Axis.vertical,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: state.errorString == null
-                    ? [CircularProgressIndicator()]
-                    : [
-                        Text(state.errorString),
-                        RaisedButton(
-                            onPressed: () =>
-                                context.bloc<BookCityCubit>().request(state),
-                            child: Text("点击重试"))
-                      ],
+                    return buildCategorySection(section);
+                  }, childCount: _allCategorires.length)),
+
+              BlocBuilder<BookCityCubit, BookCityState>(
+                buildWhen: (previous, current) =>
+                previous.items.length != current.items.length ||
+                    previous.items != current.items,
+                builder: (context, state) {
+                  return SliverPadding(
+                    padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                    sliver: SliverGrid(
+                      gridDelegate: CustomGridLayout(4),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        print("list ${index}");
+                        return BookCard(state.items[index]);
+                      }, childCount: state.items.length),
+                    ),
+                  );
+                },
               ),
-            ));
-          },
-        ),
-      ],
+              buildLoading(),
+
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -213,6 +238,7 @@ class BookCity extends StatelessWidget {
           buildWhen: (previous, current) =>
               previous.selected[section] != current.selected[section],
           builder: (context, state) {
+            print("section ${section}");
             return ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: sectionData.length,
@@ -263,5 +289,35 @@ class BookCity extends StatelessWidget {
                 });
           },
         ));
+  }
+
+  Widget buildLoading() {
+    return BlocBuilder<BookCityCubit, BookCityState>(
+      // buildWhen: (previous, current) => current.items.length == 0,
+      builder: (context, state) {
+        if (state.items.length != 0) {
+          return SliverList(
+              delegate: SliverChildBuilderDelegate((context, section) {
+                return Container(height: 0);
+              }, childCount: 0));
+        }
+        return SliverFillRemaining(
+            child: Center(
+              child: Flex(
+                direction: Axis.vertical,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: state.errorString == null
+                    ? [CircularProgressIndicator()]
+                    : [
+                  Text(state.errorString),
+                  RaisedButton(
+                      onPressed: () =>
+                          context.bloc<BookCityCubit>().request(state),
+                      child: Text("点击重试"))
+                ],
+              ),
+            ));
+      },
+    );
   }
 }
