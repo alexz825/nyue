@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/data/book.dart';
 import 'package:nyue/data/category.dart';
 import 'package:nyue/network/api_list.dart';
+import 'package:nyue/views/book_card.dart';
+import 'package:nyue/views/util/CustomGridLayout.dart';
 
 class _BookCityUIProperty {
   static final categoryLineHeight = 100.0;
@@ -87,13 +89,15 @@ class BookCityCubit extends Cubit<BookCityState> {
       emit(BookCityState(state.gender, state.category, state.rank, 1));
 
   void request(BookCityState state) {
+    var newState = state.update();
+    newState.items = state.items;
     HttpUtil.getCategory(state.gender, state.category, state.rank, state.page).then((value) {
-      if (state.page <= 1) {
-        state.items = value;
-        emit(state);
+      if (newState.page <= 1) {
+        newState.items = value;
+        emit(newState);
       } else {
-        state.items.addAll(value);
-        emit(state);
+        newState.items.addAll(value);
+        emit(newState);
       }
     }).catchError((e) {
       // TODO: 创建error组件
@@ -109,10 +113,13 @@ class BookCity extends StatelessWidget {
       child: buildContentView(),
     );
   }
-
+  /*
+  content widget
+  */
   Widget buildContentView() {
     // var bloc = context.bloc<BookCityCubit>();
     // var state = bloc.state;
+    // final bloc = BlocProvider.of<BookCityCubit>(context);
     return CustomScrollView(
       slivers: <Widget>[
         //头部
@@ -124,27 +131,30 @@ class BookCity extends StatelessWidget {
         // ),
 
         SliverList(
-            delegate: SliverChildBuilderDelegate((content, section) {
+            delegate: SliverChildBuilderDelegate((context, section) {
               return buildCategorySection(section);
             }, childCount: _allCategorires.length)),
 
-        //垂直列表
-        SliverList(
-          delegate: SliverChildBuilderDelegate((content, index) {
-            return Card(
-              color: Colors.primaries[index % Colors.primaries.length],
-              child: Container(
-                height: 100,
-                alignment: Alignment.center,
-                child: Text(index.toString()),
+        BlocBuilder<BookCityCubit, BookCityState>(
+          builder: (context, state) {
+            return SliverPadding(
+              padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              sliver: SliverGrid(
+                gridDelegate: CustomGridLayout(4),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return BookCard(state.items[index]);
+                }, childCount: state.items.length),
               ),
             );
-          }, childCount: 10),
-        )
+          },
+        ),
       ],
     );
   }
 
+  /*
+  顶部三行分类
+   */
   Widget buildCategorySection(int section) {
     var sectionData = _allCategorires[section];
     return Container(
