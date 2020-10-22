@@ -23,7 +23,7 @@ class _BookCityUIProperty {
   static final categoryScrollViewInset = EdgeInsets.fromLTRB(10, 0, 10, 0);
 }
 
-final _defaultSelectedItem = BookCityState("man", "hot", "week", 0);
+final _defaultSelectedItem = BookCityState("man", "hot", "week", 1);
 final _allCategorires = AllCategories.defaultData();
 
 class BookCityState {
@@ -140,12 +140,15 @@ class BookCity extends StatefulWidget {
   State<StatefulWidget> createState() => _BookCityState();
 }
 
-class _BookCityState extends State<BookCity> {
+class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<BookCity> {
 
   RefreshController _refreshController = RefreshController(initialRefresh: false);
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocProvider(
       create: (_) {
         var cubit = BookCityCubit();
@@ -167,11 +170,10 @@ class _BookCityState extends State<BookCity> {
       builder: (context, state) {
         var bloc = context.bloc<BookCityCubit>();
         if (state is BookCityStateLoadingEnd) {
-          _refreshController.refreshCompleted();
           _refreshController.loadComplete();
         }
         return SmartRefresher(
-          enablePullDown: true,
+          enablePullDown: false,
           enablePullUp: true,
           onRefresh: () {
             bloc.refresh();
@@ -205,7 +207,6 @@ class _BookCityState extends State<BookCity> {
                     sliver: SliverGrid(
                       gridDelegate: CustomGridLayout(4),
                       delegate: SliverChildBuilderDelegate((context, index) {
-                        print("list ${index}");
                         return BookCard(state.items[index]);
                       }, childCount: state.items.length),
                     ),
@@ -235,10 +236,8 @@ class _BookCityState extends State<BookCity> {
         height: 30,
         padding: EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
         child: BlocBuilder<BookCityCubit, BookCityState>(
-          buildWhen: (previous, current) =>
-              previous.selected[section] != current.selected[section],
+          buildWhen: (previous, current) => previous.selected[section] != current.selected[section],
           builder: (context, state) {
-            print("section ${section}");
             return ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: sectionData.length,
