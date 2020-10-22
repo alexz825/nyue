@@ -61,6 +61,7 @@ class HomeTabbarState extends State<HomeTabbar>
         body: SafeArea(
           child: SizedBox.expand(
             child: TabBarView(
+              physics: NeverScrollableScrollPhysics(),
               controller: controller,
               children: [ShelfWidget(), BookCity(), new TempView()],
             ),

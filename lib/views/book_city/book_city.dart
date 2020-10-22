@@ -62,19 +62,28 @@ class BookCityState {
 }
 
 class BookCityStateInit extends BookCityState {
-  BookCityStateInit(String gender, String category, String rank, int page) : super(gender, category, rank, page);
+  BookCityStateInit(String gender, String category, String rank, int page)
+      : super(gender, category, rank, page);
   @override
-  BookCityStateInit update({String gender, String category, String rank, int page}) {
-    var state = super.update(gender: gender, category: category, rank: rank, page: page);
-    return BookCityStateInit(state.gender, state.category, state.rank, state.page);
+  BookCityStateInit update(
+      {String gender, String category, String rank, int page}) {
+    var state = super
+        .update(gender: gender, category: category, rank: rank, page: page);
+    return BookCityStateInit(
+        state.gender, state.category, state.rank, state.page);
   }
 }
+
 class BookCityStateLoadingEnd extends BookCityState {
-  BookCityStateLoadingEnd(String gender, String category, String rank, int page) : super(gender, category, rank, page);
+  BookCityStateLoadingEnd(String gender, String category, String rank, int page)
+      : super(gender, category, rank, page);
   @override
-  BookCityStateLoadingEnd update({String gender, String category, String rank, int page}) {
-    var state = super.update(gender: gender, category: category, rank: rank, page: page);
-    return BookCityStateLoadingEnd(state.gender, state.category, state.rank, state.page);
+  BookCityStateLoadingEnd update(
+      {String gender, String category, String rank, int page}) {
+    var state = super
+        .update(gender: gender, category: category, rank: rank, page: page);
+    return BookCityStateLoadingEnd(
+        state.gender, state.category, state.rank, state.page);
   }
 }
 
@@ -109,13 +118,15 @@ class BookCityCubit extends Cubit<BookCityState> {
     state.page += 1;
     request(state);
   }
+
   void refresh() {
     state.page = 1;
     request(state);
   }
 
   request(BookCityState state) async {
-    var newState = BookCityStateLoadingEnd(state.gender, state.category, state.rank, state.page);
+    var newState = BookCityStateLoadingEnd(
+        state.gender, state.category, state.rank, state.page);
     newState.items = state.items;
     HttpUtil.getCategory(state.gender, state.category, state.rank, state.page)
         .then((value) {
@@ -140,9 +151,10 @@ class BookCity extends StatefulWidget {
   State<StatefulWidget> createState() => _BookCityState();
 }
 
-class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<BookCity> {
-
-  RefreshController _refreshController = RefreshController(initialRefresh: false);
+class _BookCityState extends State<BookCity>
+    with AutomaticKeepAliveClientMixin<BookCity> {
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
   @override
   bool get wantKeepAlive => true;
 
@@ -174,7 +186,7 @@ class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<
         }
         return SmartRefresher(
           enablePullDown: false,
-          enablePullUp: true,
+          enablePullUp: state.page < 5,
           onRefresh: () {
             bloc.refresh();
           },
@@ -194,12 +206,12 @@ class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<
 
               SliverList(
                   delegate: SliverChildBuilderDelegate((context, section) {
-                    return buildCategorySection(section);
-                  }, childCount: _allCategorires.length)),
+                return buildCategorySection(section);
+              }, childCount: _allCategorires.length)),
 
               BlocBuilder<BookCityCubit, BookCityState>(
                 buildWhen: (previous, current) =>
-                previous.items.length != current.items.length ||
+                    previous.items.length != current.items.length ||
                     previous.items != current.items,
                 builder: (context, state) {
                   return SliverPadding(
@@ -214,7 +226,6 @@ class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<
                 },
               ),
               buildLoading(),
-
             ],
           ),
         );
@@ -236,7 +247,8 @@ class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<
         height: 30,
         padding: EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
         child: BlocBuilder<BookCityCubit, BookCityState>(
-          buildWhen: (previous, current) => previous.selected[section] != current.selected[section],
+          buildWhen: (previous, current) =>
+              previous.selected[section] != current.selected[section],
           builder: (context, state) {
             return ListView.separated(
                 scrollDirection: Axis.horizontal,
@@ -297,25 +309,25 @@ class _BookCityState extends State<BookCity> with AutomaticKeepAliveClientMixin<
         if (state.items.length != 0) {
           return SliverList(
               delegate: SliverChildBuilderDelegate((context, section) {
-                return Container(height: 0);
-              }, childCount: 0));
+            return Container(height: 0);
+          }, childCount: 0));
         }
         return SliverFillRemaining(
             child: Center(
-              child: Flex(
-                direction: Axis.vertical,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: state.errorString == null
-                    ? [CircularProgressIndicator()]
-                    : [
-                  Text(state.errorString),
-                  RaisedButton(
-                      onPressed: () =>
-                          context.bloc<BookCityCubit>().request(state),
-                      child: Text("点击重试"))
-                ],
-              ),
-            ));
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: state.errorString == null
+                ? [CircularProgressIndicator()]
+                : [
+                    Text(state.errorString),
+                    RaisedButton(
+                        onPressed: () =>
+                            context.bloc<BookCityCubit>().request(state),
+                        child: Text("点击重试"))
+                  ],
+          ),
+        ));
       },
     );
   }

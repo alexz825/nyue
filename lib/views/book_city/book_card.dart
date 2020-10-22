@@ -8,10 +8,15 @@ class BookCard extends StatelessWidget {
   BaseBookModel model;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: ZTheme.color.white,
-      child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(5)),
+    return ClipRRect(
+      borderRadius: BorderRadius.all(Radius.circular(5)),
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(offset: Offset(0, 5), color: Color(0x44000000))
+          ],
+          color: ZTheme.color.white,
+        ),
         child: Flex(
           direction: Axis.vertical,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,7 +38,7 @@ class BookCard extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.fromLTRB(10, 3, 10, 5),
+              padding: EdgeInsets.fromLTRB(10, 3, 10, 8),
               child: Text(
                 model.author,
                 maxLines: 1,

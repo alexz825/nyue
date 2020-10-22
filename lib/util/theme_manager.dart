@@ -20,8 +20,10 @@ class ThemeManager {
   ThemeManager();
   final font = FontManager();
   final color = ColorManager();
-  TextStyle get cardTitleStyle =>
-      TextStyle(fontSize: font.cardTitleFontSize, color: color.grayLevel1);
+  TextStyle get cardTitleStyle => TextStyle(
+      fontSize: font.cardTitleFontSize,
+      color: color.grayLevel1,
+      fontWeight: FontWeight.bold);
   TextStyle get cardSubTitleStyle =>
       TextStyle(fontSize: font.cardSubTitleFontSize, color: color.grayLevel3);
 }
