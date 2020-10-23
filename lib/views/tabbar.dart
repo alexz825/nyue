@@ -39,6 +39,9 @@ class HomeTabbar extends StatefulWidget {
 class HomeTabbarState extends State<HomeTabbar>
     with SingleTickerProviderStateMixin {
   TabController controller;
+
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
+
   @override
   void initState() {
     controller = new TabController(length: 3, vsync: this);
@@ -53,6 +56,7 @@ class HomeTabbarState extends State<HomeTabbar>
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
+      navigatorKey: this._navigatorKey,
       color: Colors.white,
       home: Scaffold(
         appBar: AppBar(
@@ -60,14 +64,13 @@ class HomeTabbarState extends State<HomeTabbar>
         ),
         body: SafeArea(
           child: SizedBox.expand(
-            child: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              controller: controller,
-              children: [ShelfWidget(), BookCity(), new TempView()],
-            ),
-          ),
+              child: TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            controller: controller,
+            children: [ShelfWidget(), BookCity(), new TempView()],
+          )),
         ),
-        bottomNavigationBar: new Material(
+        bottomNavigationBar: Material(
             color: Colors.white,
             child: SafeArea(
               child: new TabBar(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nyue/application/tabbar.dart';
+import 'package:nyue/views/tabbar.dart';
 
 void main() {
   runApp(App());

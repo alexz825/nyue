@@ -6,6 +6,7 @@ import 'package:nyue/data/category.dart';
 import 'package:nyue/network/api_list.dart';
 import 'package:nyue/views/book_city/book_card.dart';
 import 'package:nyue/views/util/CustomGridLayout.dart';
+import 'package:nyue/views/util/navigator.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class _BookCityUIProperty {
@@ -219,7 +220,14 @@ class _BookCityState extends State<BookCity>
                     sliver: SliverGrid(
                       gridDelegate: CustomGridLayout(4),
                       delegate: SliverChildBuilderDelegate((context, index) {
-                        return BookCard(state.items[index]);
+                        return GestureDetector(
+                          onTap: () {
+                            NavigatorUtil.pushToDetail(
+                                context, state.items[index].id,
+                                book: state.items[index]);
+                          },
+                          child: BookCard(state.items[index]),
+                        );
                       }, childCount: state.items.length),
                     ),
                   );
