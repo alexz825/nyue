@@ -26,6 +26,15 @@ class ThemeManager {
       fontWeight: FontWeight.bold);
   TextStyle get cardSubTitleStyle =>
       TextStyle(fontSize: font.cardSubTitleFontSize, color: color.grayLevel3);
+
+  TextStyle get titleStyle => TextStyle(
+      fontSize: 18, //font.titleFontSize,
+      color: color.grayLevel1,
+      fontWeight: FontWeight.bold);
+  TextStyle get subTitleStyle =>
+      TextStyle(fontSize: font.titleFontSize, color: color.grayLevel3);
+  TextStyle get descStyle =>
+      TextStyle(fontSize: 14 /* font.titleFontSize */, color: color.grayLevel2);
 }
 
 final ZTheme = ThemeManager();
