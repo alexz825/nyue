@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/data/book.dart';
 import 'package:nyue/network/api_list.dart';
+import 'package:nyue/views/uikit/NetworkImg.dart';
+
+class _LayoutProperty {
+  static var ListViewPadding = EdgeInsets.fromLTRB(10, 10, 10, 10);
+}
 
 abstract class BookDetailState {}
 
@@ -53,9 +58,37 @@ class BookDetailPage extends StatelessWidget {
 
   Widget contentScrollView(BookDetailStateSuccess state) {
     return Container(
-      child: Center(
-        child: Text(state.book.desc.toString()),
-      ),
+      padding: EdgeInsets.lef,
+        child: ListView(
+      children: [bookInfoView(state.book)],
+    ));
+  }
+
+  Widget bookInfoView(BookModel book) {
+    return Stack(
+      children: [
+        Flex(
+          direction: Axis.horizontal,
+          children: [
+            Container(
+              margin: ,
+              child: AspectRatio(
+                aspectRatio: 0.75,
+                child: NetworkImg(book.img),
+              ),
+              height: 100,
+            ),
+            Flex(
+              direction: Axis.vertical,
+              children: [
+                Text(book.name),
+                Text(book.author),
+                Text("状态：" + book.bookStatus)
+              ],
+            ),
+          ],
+        )
+      ],
     );
   }
 }

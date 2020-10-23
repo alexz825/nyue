@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'const.dart';
 import 'exception.dart';
 import 'cache.dart';
+
 typedef T ModelJsonConvert<T>(Map<String, dynamic> json);
 
 const _HTTP_ENDPOINT = "https://shuapi.jiaston.com/";
@@ -38,8 +39,7 @@ class Http {
       dio = new Dio(options);
 
       // 添加error拦截器
-      dio.interceptors
-          .add(ErrorInterceptor());
+      dio.interceptors.add(ErrorInterceptor());
       // 添加缓存
       dio.interceptors.add(NetCacheInterceptor());
       this.init(baseUrl: _HTTP_ENDPOINT);
@@ -54,9 +54,9 @@ class Http {
   /// [interceptors] 基础拦截器
   void init(
       {String baseUrl,
-        int connectTimeout,
-        int receiveTimeout,
-        List<Interceptor> interceptors}) {
+      int connectTimeout,
+      int receiveTimeout,
+      List<Interceptor> interceptors}) {
     dio.options = dio.options.merge(
       baseUrl: baseUrl ?? _HTTP_ENDPOINT,
       connectTimeout: connectTimeout,
@@ -69,15 +69,14 @@ class Http {
 
   /// restful get 操作
   Future get(
-      String path, {
-        Map<String, dynamic> params,
-        String keypath = "",
-        Options options = null,
-        bool noCache = !CACHE_ENABLE,
-        String cacheKey = "",
-        bool cacheDisk = false,
-      }) async {
-
+    String path, {
+    Map<String, dynamic> params,
+    String keypath = "",
+    Options options = null,
+    bool noCache = !CACHE_ENABLE,
+    String cacheKey = "",
+    bool cacheDisk = false,
+  }) async {
     Options requestOptions = options ?? Options();
     requestOptions = requestOptions.merge(extra: {
       "noCache": noCache,
@@ -87,12 +86,8 @@ class Http {
     var ctoken = CancelToken();
     this.storeCancelToken(path, ctoken, params: params);
     Response response;
-    response = await dio.get(
-        path,
-        queryParameters: params,
-        options: requestOptions,
-        cancelToken: ctoken
-    );
+    response = await dio.get(path,
+        queryParameters: params, options: requestOptions, cancelToken: ctoken);
     this.storeCancelToken(path, null, params: params);
     var jsonValue = response.data;
     print("get  " + response.request.uri.toString());
@@ -102,14 +97,14 @@ class Http {
 
   /// restful get 操作
   Future post(
-      String path, {
-        Map<String, dynamic> params,
-        String keypath = "",
-        Options options = null,
-        bool noCache = !CACHE_ENABLE,
-        String cacheKey = "",
-        bool cacheDisk = false,
-      }) async {
+    String path, {
+    Map<String, dynamic> params,
+    String keypath = "",
+    Options options = null,
+    bool noCache = !CACHE_ENABLE,
+    String cacheKey = "",
+    bool cacheDisk = false,
+  }) async {
     Options requestOptions = options ?? Options();
     requestOptions = requestOptions.merge(extra: {
       "noCache": noCache,
@@ -123,11 +118,8 @@ class Http {
     requestOptions.contentType = "application/json";
     Response response;
 
-    response = await dio.post(
-        path,
-        data: params,
-        options: requestOptions,
-        cancelToken: ctoken);
+    response = await dio.post(path,
+        data: params, options: requestOptions, cancelToken: ctoken);
     this.storeCancelToken(path, null, params: params);
     var jsonValue = response.data;
     print("post  " + response.request.uri.toString());
@@ -138,8 +130,10 @@ class Http {
   dynamic processResponseData(jsonValue, String keypath) {
     if (!(jsonValue is Map<String, dynamic>)) {
       var arrayWithCommaEndRegex = "},]";
-      if (jsonValue is String && (jsonValue as String).contains(arrayWithCommaEndRegex)) {
-        jsonValue = (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
+      if (jsonValue is String &&
+          (jsonValue as String).contains(arrayWithCommaEndRegex)) {
+        jsonValue =
+            (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
       }
       jsonValue = json.decode(jsonValue);
     }
@@ -157,7 +151,8 @@ class Http {
     return res[keypath];
   }
 
-  void storeCancelToken(String path, CancelToken token, {Map<String, dynamic> params}) {
+  void storeCancelToken(String path, CancelToken token,
+      {Map<String, dynamic> params}) {
     var key = path + (params == null ? "" : params.toString());
     if (token == null) {
       this._cancelToken.remove(key);
@@ -167,7 +162,8 @@ class Http {
   }
 
   void cancelRequest(String path, {Map<String, dynamic> params}) {
-    var token = this._cancelToken[path + (params == null ? "" : params.toString())];
+    var token =
+        this._cancelToken[path + (params == null ? "" : params.toString())];
     if (token != null) {
       token.cancel("cancel by user");
       this.storeCancelToken(path, null);
