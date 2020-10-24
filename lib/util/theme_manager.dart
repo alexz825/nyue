@@ -8,6 +8,7 @@ class ColorManager {
 
   final green = Colors.green;
   final white = Colors.white;
+  final blue = Colors.blue;
   final grayLevel1 = Color(0xff333333);
   final grayLevel2 = Color(0xff666666);
   final grayLevel3 = Color(0xff999999);

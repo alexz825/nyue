@@ -10,7 +10,11 @@ class _LayoutProperty {
   static var ListViewPadding = EdgeInsets.fromLTRB(15, 10, 15, 10);
   // static var BookInfoPadding = EdgeInsets.fromLTRB(0, 10, 0, 0);
   static var BookInfoDescPadding = EdgeInsets.fromLTRB(15, 0, 15, 0);
-  static var bottomHeight = 50.0;
+  static var bottomHeight = 30.0;
+
+  static TextStyle BottomButtonTextStyle(Color color) {
+    return TextStyle(fontSize: 16, color: color);
+  }
 }
 
 abstract class BookDetailState {}
@@ -61,18 +65,66 @@ class BookDetailPage extends StatelessWidget {
   }
 
   Widget contentScrollView(BuildContext context, BookDetailStateSuccess state) {
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
     return Flex(
       direction: Axis.vertical,
       children: [
         Expanded(child: ListView(children: [bookInfoView(state.book)])),
         Container(
-          height: _LayoutProperty.bottomHeight +
-              MediaQuery.of(context).padding.bottom,
-          color: Colors.black,
-          child: Flex(
-            direction: Axis.horizontal,
-          ),
-        )
+            decoration: BoxDecoration(boxShadow: [
+              BoxShadow(offset: Offset(0, -3), color: Colors.black.withAlpha(8))
+            ], color: ZTheme.color.white),
+            height: _LayoutProperty.bottomHeight +
+                MediaQuery.of(context).padding.bottom,
+            child: Flex(
+              direction: Axis.horizontal,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Container(
+                    height: _LayoutProperty.bottomHeight,
+                    padding: EdgeInsets.only(bottom: safeAreaBottom / 2),
+                    child: false
+                        ? FlatButton.icon(
+                            icon: Icon(
+                              Icons.add,
+                              color: ZTheme.color.grayLevel1,
+                            ),
+                            label: Text(
+                              "加书架",
+                              style: _LayoutProperty.BottomButtonTextStyle(
+                                  ZTheme.color.grayLevel1),
+                            ),
+                          )
+                        : FlatButton.icon(
+                            icon: Icon(
+                              Icons.done,
+                              color: ZTheme.color.grayLevel1,
+                            ),
+                            label: Text(
+                              "已加入",
+                              style: _LayoutProperty.BottomButtonTextStyle(
+                                  ZTheme.color.grayLevel1),
+                            ),
+                          ),
+                  ),
+                ),
+                Expanded(
+                    child: Container(
+                  color: Colors.blue,
+                  padding: EdgeInsets.only(bottom: safeAreaBottom / 2),
+                  child: FlatButton(
+                    color: Colors.blue,
+                    child: Text(
+                      "开始阅读",
+                      style: _LayoutProperty.BottomButtonTextStyle(
+                          ZTheme.color.white),
+                    ),
+                  ),
+                ))
+              ],
+            ))
       ],
     );
   }
