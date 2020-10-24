@@ -129,37 +129,32 @@ class _BookPageState extends State<BookPage>
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
-    height = MediaQuery.of(context).size.height - kToolbarHeight;
+    height = MediaQuery.of(context).size.height;
     Color bgColor = Colors.tealAccent;
-    return Scaffold(
-      appBar: AppBar(
-        title: new Text("BookPage"),
-      ),
-      body: Container(
-        height: height,
-        width: width,
-        child: GestureDetector(
-          onTapDown: toDown,
-          onTapUp: toNormal,
-          onPanEnd: toNormal,
-          onPanCancel: toNormal,
-          onPanUpdate: toDragUpdate,
-          child: CustomPaint(
-            painter: BookPainter(
-              text: content,
-              text2: content2,
-              viewWidth: width,
-              viewHeight: height,
-              cur: curPoint,
-              pre: prePoint,
-              style: style,
-              bgColor: bgColor,
-              frontColor: Colors.yellow,
-              limitAngle: true,
-              changedPoint: (pre) {
-                prePoint = pre;
-              },
-            ),
+    return Container(
+      height: height,
+      width: width,
+      child: GestureDetector(
+        onTapDown: toDown,
+        onTapUp: toNormal,
+        onPanEnd: toNormal,
+        onPanCancel: toNormal,
+        onPanUpdate: toDragUpdate,
+        child: CustomPaint(
+          painter: BookPainter(
+            text: content,
+            text2: content2,
+            viewWidth: width,
+            viewHeight: height,
+            cur: curPoint,
+            pre: prePoint,
+            style: style,
+            bgColor: bgColor,
+            frontColor: Colors.yellow,
+            limitAngle: true,
+            changedPoint: (pre) {
+              prePoint = pre;
+            },
           ),
         ),
       ),

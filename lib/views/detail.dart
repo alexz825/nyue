@@ -5,6 +5,7 @@ import 'package:nyue/data/book.dart';
 import 'package:nyue/network/api_list.dart';
 import 'package:nyue/util/theme_manager.dart';
 import 'package:nyue/views/uikit/NetworkImg.dart';
+import 'package:nyue/views/util/navigator.dart';
 
 class _LayoutProperty {
   static var ListViewPadding = EdgeInsets.fromLTRB(15, 10, 15, 10);
@@ -115,6 +116,10 @@ class BookDetailPage extends StatelessWidget {
                   color: Colors.blue,
                   padding: EdgeInsets.only(bottom: safeAreaBottom / 2),
                   child: FlatButton(
+                    onPressed: () {
+                      NavigatorUtil.pushsToReader(
+                          context, state.book.id, state.book.firstChapterId);
+                    },
                     color: Colors.blue,
                     child: Text(
                       "开始阅读",

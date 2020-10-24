@@ -33,7 +33,7 @@ class ThemeManager {
       color: color.grayLevel1,
       fontWeight: FontWeight.bold);
   TextStyle get subTitleStyle =>
-      TextStyle(fontSize: font.titleFontSize, color: color.grayLevel3);
+      TextStyle(fontSize: font.subTitleFontSize, color: color.grayLevel3);
   TextStyle get descStyle =>
       TextStyle(fontSize: 14 /* font.titleFontSize */, color: color.grayLevel2);
 }
