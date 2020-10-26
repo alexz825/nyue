@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nyue/network/api_list.dart';
-import 'package:nyue/views/detail/bloc.dart';
-import 'reader/page.dart';
-import 'state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nyue/views/detail/bloc.dart';
+import 'package:nyue/views/detail/page_turn/page_turn.dart';
+
+import 'state.dart';
 
 class _LayoutPropery {
   var contentHorizontalPadding = 15.0;
@@ -41,7 +41,7 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
   Widget build(BuildContext context) {
     return GestureDetector(
       child: Stack(
-        children: [],
+        children: pages,
       ),
     );
   }
@@ -92,10 +92,26 @@ class _ChapterReaderState extends State<ChapterReader> {
 
   Widget _content(BuildContext context) {
     return Scaffold(
-      body: _ChapterPageWidget(),
+      body: PageTurn(
+        builder: (context, index) {
+          return Container(
+            child: Center(
+              child: Text("page  ${index}"),
+            ),
+          );
+        },
+        pageCount: 10,
+        cutoff: 0.2,
+        showDragCutoff: false,
+        backgroundColor: Colors.white,
+        initialIndex: 0,
+        duration: Duration(milliseconds: 300),
+      ),
     );
   }
 
   @override
-  void initState() {}
+  void initState() {
+    super.initState();
+  }
 }
