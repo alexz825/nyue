@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/views/detail/bloc.dart';
-import 'package:nyue/views/detail/page_turn/page_turn.dart';
 
+import './page/page_view.dart';
 import 'state.dart';
+import 'dart:math';
 
 class _LayoutPropery {
   var contentHorizontalPadding = 15.0;
@@ -91,23 +92,81 @@ class _ChapterReaderState extends State<ChapterReader> {
   }
 
   Widget _content(BuildContext context) {
+    // return Scaffold(
+    //     body: PageTurn(
+    //     builder: (context, index) {
+    //   return Container(
+    //     child: Center(
+    //       child: Text("page  ${index}"),
+    //     ),
+    //   );
+    // },
+    // pageCount: 10,
+    // cutoff: 0.2,
+    // showDragCutoff: false,
+    // backgroundColor: Colors.white,
+    // initialIndex: 0,
+    // duration: Duration(milliseconds: 300),
+    // ),
+    // );
+
     return Scaffold(
-      body: PageTurn(
-        builder: (context, index) {
-          return Container(
-            child: Center(
-              child: Text("page  ${index}"),
-            ),
-          );
-        },
-        pageCount: 10,
-        cutoff: 0.2,
-        showDragCutoff: false,
-        backgroundColor: Colors.white,
-        initialIndex: 0,
-        duration: Duration(milliseconds: 300),
+        body: Center(
+      child: Container(
+        color: Colors.blue,
+        child: Transform(
+          // alignment: Alignment.bottomRight,
+          transform:
+
+              // new Matrix4.skewY(0.3),
+              MatrixUtils.createCylindricalProjectionTransform(
+                  radius: 100.0,
+                  angle: pi / 3,
+                  perspective: 0.0000001,
+                  orientation: Axis.horizontal),
+          child: Container(
+            color: Colors.red,
+            child: Text("""
+          djksal;fjieajfdka
+          dfjsa;fjeia;d
+          dkjl;fjiefjkdas;lfdjksa;fssssss
+          dkjl;fjiefjkdas;lfdjksa;fsssss
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+          dkjl;fjiefjkdas;lfdjksa;f
+
+          """),
+          ),
+        ),
       ),
-    );
+    )
+        // CustomPageView(
+        //   initialWidget: Container(
+        //     child: Center(
+        //       child: Text("initial"),
+        //     ),
+        //   ),
+        //   previousBuilder: (context, widget) {
+        //     return Container(
+        //       child: Center(
+        //         child: Text("prefix"),
+        //       ),
+        //     );
+        //   },
+        //   nextBuilder: (context, widget) {
+        //     return Container(
+        //       child: Center(
+        //         child: Text("next"),
+        //       ),
+        //     );
+        //   },
+        // ),
+        );
   }
 
   @override
