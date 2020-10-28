@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/views/detail/bloc.dart';
-import 'package:nyue/views/detail/page_turn/page_turn.dart';
 
+import './page/page_view.dart';
 import 'state.dart';
 
 class _LayoutPropery {
@@ -91,21 +91,45 @@ class _ChapterReaderState extends State<ChapterReader> {
   }
 
   Widget _content(BuildContext context) {
+    // return Scaffold(
+    //     body: PageTurn(
+    //     builder: (context, index) {
+    //   return Container(
+    //     child: Center(
+    //       child: Text("page  ${index}"),
+    //     ),
+    //   );
+    // },
+    // pageCount: 10,
+    // cutoff: 0.2,
+    // showDragCutoff: false,
+    // backgroundColor: Colors.white,
+    // initialIndex: 0,
+    // duration: Duration(milliseconds: 300),
+    // ),
+    // );
+
     return Scaffold(
-      body: PageTurn(
-        builder: (context, index) {
+      body: CustomPageView(
+        initialWidget: Container(
+          child: Center(
+            child: Text("initial"),
+          ),
+        ),
+        previousBuilder: (context, widget) {
           return Container(
             child: Center(
-              child: Text("page  ${index}"),
+              child: Text("prefix"),
             ),
           );
         },
-        pageCount: 10,
-        cutoff: 0.2,
-        showDragCutoff: false,
-        backgroundColor: Colors.white,
-        initialIndex: 0,
-        duration: Duration(milliseconds: 300),
+        nextBuilder: (context, widget) {
+          return Container(
+            child: Center(
+              child: Text("next"),
+            ),
+          );
+        },
       ),
     );
   }
