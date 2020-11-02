@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/views/detail/bloc.dart';
 
-import './page/page_view.dart';
 import 'state.dart';
 
 class _LayoutPropery {
@@ -18,17 +18,7 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
     with SingleTickerProviderStateMixin {
   AnimationController _controller;
 
-  var pages = [
-    Container(
-      color: Colors.red,
-    ),
-    Container(
-      color: Colors.blue,
-    ),
-    Container(
-      color: Colors.green,
-    )
-  ];
+  double panOffset = 0;
 
   @override
   void initState() {
@@ -39,9 +29,34 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
 
   @override
   Widget build(BuildContext context) {
+    // var size = context.size;
     return GestureDetector(
+      onPanUpdate: (details) {
+        setState(() {
+          panOffset = details.delta.dx;
+        });
+      },
       child: Stack(
-        children: pages,
+        children: [
+          Positioned(
+            right: panOffset,
+            child: Container(
+              color: Colors.red,
+            ),
+          ),
+          Positioned(
+            right: panOffset,
+            child: Container(
+              color: Colors.blue,
+            ),
+          ),
+          Positioned(
+            right: panOffset,
+            child: Container(
+              color: Colors.green,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -67,7 +82,7 @@ class _ChapterReaderState extends State<ChapterReader> {
 
   @override
   Widget build(BuildContext context) {
-    MultiBlocProvider(
+    return MultiBlocProvider(
       providers: [
         BlocProvider<ChapterReaderBloc>(
           // 章节内容
@@ -81,57 +96,11 @@ class _ChapterReaderState extends State<ChapterReader> {
       ],
       child: _content(context),
     );
-
-    return BlocProvider<ChapterReaderBloc>(
-        create: (context) {
-          ChapterReaderBloc(
-              ChapterReaderStateInitial(widget.bookId, widget.chapterId));
-        },
-        child: _content(context));
   }
 
   Widget _content(BuildContext context) {
-    // return Scaffold(
-    //     body: PageTurn(
-    //     builder: (context, index) {
-    //   return Container(
-    //     child: Center(
-    //       child: Text("page  ${index}"),
-    //     ),
-    //   );
-    // },
-    // pageCount: 10,
-    // cutoff: 0.2,
-    // showDragCutoff: false,
-    // backgroundColor: Colors.white,
-    // initialIndex: 0,
-    // duration: Duration(milliseconds: 300),
-    // ),
-    // );
-
-    return Scaffold(
-      body: CustomPageView(
-        initialWidget: Container(
-          child: Center(
-            child: Text("initial"),
-          ),
-        ),
-        previousBuilder: (context, widget) {
-          return Container(
-            child: Center(
-              child: Text("prefix"),
-            ),
-          );
-        },
-        nextBuilder: (context, widget) {
-          return Container(
-            child: Center(
-              child: Text("next"),
-            ),
-          );
-        },
-      ),
-    );
+    // context.bloc<ChapterReaderBloc>();
+    return Scaffold(body: Container(child: _ChapterPageWidget()));
   }
 
   @override
