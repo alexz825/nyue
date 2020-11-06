@@ -24,7 +24,29 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
   Animation<double> _animation;
   _ChapterScrollState _scrollState = _ChapterScrollState.no;
 
-  double startOffset = 0;
+  double _startOffset = 0;
+  double _rightOffset = 0;
+  var _isDragging = false;
+  var _children = [
+    Container(
+      color: Colors.red,
+      child: Center(
+        child: Text("1"),
+      ),
+    ),
+    Container(
+      color: Colors.blue,
+      child: Center(
+        child: Text("2"),
+      ),
+    ),
+    Container(
+      color: Colors.green,
+      child: Center(
+        child: Text("3"),
+      ),
+    ),
+  ];
 
   @override
   void initState() {
@@ -33,6 +55,18 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
         vsync: this, duration: Duration(milliseconds: 250), value: 0);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.linear)
       ..addListener(() {
+        setState(() {
+          _rightOffset = _animation.value;
+        });
+      })
+      ..addStatusListener((status) {
+        if (_isDragging) {
+          return;
+        }
+        print(status);
+        if (status == AnimationStatus.completed) {
+          _children.insert(_children.length - 1, _children.removeAt(0));
+        }
         setState(() {});
       });
   }
@@ -54,66 +88,54 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
     return GestureDetector(
       onPanUpdate: (details) {
         var delta = (size.width - details.globalPosition.dx) / size.width;
-        // print(size.width);
-        print(delta);
+        if (_isDragging) {
+          setState(() {
+            _rightOffset = delta;
+          });
+          return;
+        }
+        _isDragging = true;
         _scrollState =
-            this.getState(details.globalPosition.dx - this.startOffset);
+            this.getState(details.globalPosition.dx - this._startOffset);
         _controller.animateTo(delta);
-        // setState(() {});
       },
       onPanStart: (details) {
-        startOffset = details.globalPosition.dx;
-        print(this.startOffset);
+        _startOffset = details.globalPosition.dx;
       },
-      onPanDown: (details) {
-        // var offset =
-        //     (details.globalPosition.dx - this.startOffset) / size.width;
-        // _controller.stop();
-      },
+      onPanDown: (details) {},
       onPanEnd: (details) {
-        // var offset =
-        // (details.velocity.dx - this.startOffset) / size.width;
-        // details.velocity;
-        print(details.velocity.pixelsPerSecond.dx);
-        if (_controller.value > 0.5) {
-          _controller.forward();
+        _isDragging = false;
+        var delta = (size.width - _rightOffset) / size.width;
+        if (delta > 0.5) {
+          _controller.forward(from: delta);
         } else {
-          _controller.stop();
+          _controller.reverse(from: delta);
         }
       },
       child: Stack(
         children: [
           Positioned(
-            right: 0,
-            width: size.width,
-            height: size.height,
-            child: Container(
-              color: Colors.green,
-            ),
-          ),
+              right: 0,
+              width: size.width,
+              height: size.height,
+              child: _children[0]),
           Positioned(
-            right: size.width *
-                ((this._scrollState == _ChapterScrollState.next
-                    ? _animation.value
-                    : 0)),
-            width: size.width,
-            height: size.height,
-            child: Container(
-              color: Colors.red,
-            ),
-          ),
+              right: size.width *
+                  ((this._scrollState == _ChapterScrollState.next
+                      ? _rightOffset
+                      : 0)),
+              width: size.width,
+              height: size.height,
+              child: _children[1]),
           Positioned(
-            right: size.width *
-                (1 -
-                    (this._scrollState == _ChapterScrollState.previous
-                        ? _animation.value
-                        : 0)),
-            width: size.width,
-            height: size.height,
-            child: Container(
-              color: Colors.blue,
-            ),
-          ),
+              right: size.width *
+                  (1 -
+                      (this._scrollState == _ChapterScrollState.previous
+                          ? _rightOffset
+                          : 0)),
+              width: size.width,
+              height: size.height,
+              child: _children[2]),
         ],
       ),
     );
