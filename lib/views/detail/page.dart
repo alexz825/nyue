@@ -24,8 +24,7 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
   Animation<double> _animation;
   _ChapterScrollState _scrollState = _ChapterScrollState.no;
 
-  double _startOffset = 0;
-  double _rightOffset = 0;
+  double _panOffset = 0;
   var _isDragging = false;
   var _children = [
     Container(
@@ -52,23 +51,41 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: Duration(milliseconds: 250), value: 0);
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.linear)
+        vsync: this, duration: Duration(milliseconds: 250), value: 0)
       ..addListener(() {
         setState(() {
-          _rightOffset = _animation.value;
+          _panOffset = _animation.value;
         });
       })
       ..addStatusListener((status) {
         if (_isDragging) {
           return;
         }
-        print(status);
-        if (status == AnimationStatus.completed) {
-          _children.insert(_children.length - 1, _children.removeAt(0));
+        if (status != AnimationStatus.completed &&
+            status != AnimationStatus.dismissed) {
+          return;
         }
-        setState(() {});
+
+        switch (_scrollState) {
+          case _ChapterScrollState.no:
+            break;
+          case _ChapterScrollState.next:
+            if (status == AnimationStatus.completed) {
+              _children.insert(0, _children.removeLast());
+            }
+            break;
+          case _ChapterScrollState.previous:
+            if (status == AnimationStatus.dismissed) {
+              _children.insert(_children.length - 1, _children.removeAt(0));
+            }
+            break;
+        }
+        setState(() {
+          _scrollState = _ChapterScrollState.no;
+          _panOffset = 0;
+        });
       });
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.linear);
   }
 
   _ChapterScrollState getState(double panDelta) {
@@ -90,26 +107,37 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
         var delta = (size.width - details.globalPosition.dx) / size.width;
         if (_isDragging) {
           setState(() {
-            _rightOffset = delta;
+            _panOffset = delta;
           });
           return;
         }
         _isDragging = true;
-        _scrollState =
-            this.getState(details.globalPosition.dx - this._startOffset);
-        _controller.animateTo(delta);
+        _scrollState = this.getState(details.delta.dx);
+
+        if (_scrollState == _ChapterScrollState.next) {
+          _controller.value = 0;
+          _controller.animateTo(delta);
+        } else if (_scrollState == _ChapterScrollState.previous) {
+          _controller.value = 1;
+          _controller.animateBack(delta);
+        }
       },
-      onPanStart: (details) {
-        _startOffset = details.globalPosition.dx;
-      },
-      onPanDown: (details) {},
       onPanEnd: (details) {
         _isDragging = false;
-        var delta = (size.width - _rightOffset) / size.width;
-        if (delta > 0.5) {
-          _controller.forward(from: delta);
-        } else {
-          _controller.reverse(from: delta);
+        bool isVelocity = details.velocity.pixelsPerSecond.dx.abs() > 0;
+
+        if (_scrollState == _ChapterScrollState.next) {
+          if (_panOffset > 0.5 || isVelocity) {
+            _controller.forward(from: _panOffset);
+          } else {
+            _controller.reverse(from: _panOffset);
+          }
+        } else if (_scrollState == _ChapterScrollState.previous) {
+          if (_panOffset < 0.5 || isVelocity) {
+            _controller.reverse(from: _panOffset);
+          } else {
+            _controller.forward(from: _panOffset);
+          }
         }
       },
       child: Stack(
@@ -122,17 +150,16 @@ class _ChapterPageWidgetState extends State<_ChapterPageWidget>
           Positioned(
               right: size.width *
                   ((this._scrollState == _ChapterScrollState.next
-                      ? _rightOffset
+                      ? _panOffset
                       : 0)),
               width: size.width,
               height: size.height,
               child: _children[1]),
           Positioned(
               right: size.width *
-                  (1 -
-                      (this._scrollState == _ChapterScrollState.previous
-                          ? _rightOffset
-                          : 0)),
+                  ((this._scrollState == _ChapterScrollState.previous
+                      ? _panOffset
+                      : 1)),
               width: size.width,
               height: size.height,
               child: _children[2]),
