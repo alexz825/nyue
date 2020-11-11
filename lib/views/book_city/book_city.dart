@@ -218,7 +218,7 @@ class _BookCityState extends State<BookCity>
                   return SliverPadding(
                     padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
                     sliver: SliverGrid(
-                      gridDelegate: CustomGridLayout(4),
+                      gridDelegate: CustomGridLayout(3),
                       delegate: SliverChildBuilderDelegate((context, index) {
                         return GestureDetector(
                           onTap: () {
