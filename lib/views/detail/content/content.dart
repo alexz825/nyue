@@ -1,43 +1,35 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
-enum _SinglePageStates { next, previous, no }
+class _SinglePage extends AnimatedWidget {
+  _SinglePage(
+      {Key key,
+      @required Animation<double> animation,
+      @required this.child,
+      @required this.controller})
+      : super(key: key, listenable: animation);
 
-class _SinglePage extends StatefulWidget {
-  _SinglePage({@required this.child, @required this.status, Key key})
-      : super(key: key);
   Widget child;
-  _SinglePageStates status;
-  AnimationController _controller;
-  ValueNotifier<double> panoffset = ValueNotifier<double>(0);
-  @override
-  State<StatefulWidget> createState() => _SinglePageState();
-}
+  Animation<double> get animation => listenable as Animation<double>;
+  AnimationController controller;
 
-class _SinglePageState extends State<_SinglePage>
-    with SingleTickerProviderStateMixin {
-  Animation<double> _animation;
-  double _panOffset;
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
+    var animation = listenable as Animation<double>;
     return Positioned(
-      right: widget.panoffset.value * size.width,
+      right: size.width * animation.value,
       width: size.width,
       height: size.height,
-      child: widget.child,
+      child: Container(
+        decoration: animation.value == 0 || animation.value == 1
+            ? null
+            : BoxDecoration(boxShadow: [
+                BoxShadow(color: Color(0x09000000), offset: Offset(10, 0))
+              ]),
+        child: child,
+      ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    widget._controller = AnimationController(
-        vsync: this, duration: Duration(milliseconds: 250), value: 0);
-    _animation =
-        CurvedAnimation(parent: widget._controller, curve: Curves.linear)
-          ..addListener(() {});
   }
 }
 
@@ -61,53 +53,52 @@ class PageContentWidget extends StatefulWidget {
 
 enum _ChapterScrollState { next, previous, no }
 
-class PageContentWidgetState extends State<PageContentWidget> {
+class PageContentWidgetState extends State<PageContentWidget>
+    with TickerProviderStateMixin {
   _ChapterScrollState _scrollState = _ChapterScrollState.no;
 
-  double _panOffset = 0;
   var _isDragging = false;
   int currentIndex;
-  var _children = [
-    Container(
-      color: Colors.red,
-      child: Center(
-        child: Text("1"),
-      ),
-    ),
-    Container(
-      color: Colors.blue,
-      child: Center(
-        child: Text("2"),
-      ),
-    ),
-    Container(
-      color: Colors.green,
-      child: Center(
-        child: Text("3"),
-      ),
-    ),
-  ];
 
-  List<Widget> children = [];
+  List<_SinglePage> children = [];
+  Map<Widget, AnimationController> controllers = {};
+
+  /**
+   * 获取当前显示的widget
+   * 1. 需要提前设置scrollState
+   * 2. 需要提前判断是否是第一页或者最后一页
+   */
+  _SinglePage get _currentShowingWidget {
+    switch (this._scrollState) {
+      case _ChapterScrollState.no:
+        return null;
+      case _ChapterScrollState.previous:
+        return children[currentIndex - 1];
+      case _ChapterScrollState.next:
+        return children[currentIndex];
+    }
+  }
 
   @override
   void initState() {
     currentIndex = 1;
     var previous = widget.previous(widget.initial);
     this.children = [
-      previous != null
-          ? _SinglePage(
-              child: previous,
-            )
-          : null,
-      _SinglePage(
-        child: widget.initial,
+      previous != null ? createPage(previous) : null,
+      createPage(
+        widget.initial,
       ),
-      _SinglePage(
-        child: widget.next(widget.initial),
+      createPage(
+        widget.next(widget.initial),
       ),
     ];
+    this.setupChildren();
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(PageContentWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -117,18 +108,22 @@ class PageContentWidgetState extends State<PageContentWidget> {
       onPanUpdate: (details) => this._onPanUpdate(details, size),
       onPanEnd: (details) => this._onPanEnd(details, size),
       child: Stack(
-        children: this.children.reversed.toList(),
+        children: List<Widget>.from(this.children.reversed.toList()),
       ),
     );
   }
 
   @override
   void dispose() {
+    this.children.forEach((element) {
+      element.controller.dispose();
+    });
     super.dispose();
   }
 
   /**
    * 根据滑动初始状态判断是上一页还是下一页
+   * [panDelta] 滑动的距离
    */
   _ChapterScrollState getState(double panDelta) {
     if (panDelta == 0) {
@@ -141,52 +136,127 @@ class PageContentWidgetState extends State<PageContentWidget> {
     return _ChapterScrollState.no;
   }
 
-  void scrollToNextPage({double from}) {}
+  void scrollToNextPage({double from}) {
+    var targetIndex = this.currentIndex;
+    var targetWidget = this.children[targetIndex];
+    // 如果不是已经结束的
+    if (targetWidget.controller.status != AnimationStatus.completed ||
+        targetWidget.controller.status != AnimationStatus.dismissed) {
+      targetWidget.controller.forward(from: from);
+    }
+    this.currentIndex = targetIndex + 1;
+    print(this.currentIndex);
+    this.children.add(
+        this.createPage(widget.next(this.children[this.currentIndex].child)));
+    this.setupChildren();
+  }
 
-  void scrollToPreviousPage({double from}) {}
+  void scrollToPreviousPage({double from}) {
+    var targetIndex = this.currentIndex - 1;
+    var targetWidget = this.children[targetIndex];
+    // 如果不是已经结束的
+    if (targetWidget.controller.status != AnimationStatus.completed ||
+        targetWidget.controller.status != AnimationStatus.dismissed) {
+      targetWidget.controller.reverse();
+    }
+    //insert之后目标widget的位置自动+1了，不需要再设置currentIndex了
+    this.children.insert(
+        0, this.createPage(widget.previous(this.children[targetIndex].child)));
+    this.currentIndex = targetIndex + 1;
+    this.setupChildren();
+  }
 
-  /**
-   * 手势滑动
-   */
+  /// 设置所有页面当前的位置
+  /// 如果是正在动画的不变，不是正在动画的按照规则配置
+  void setupChildren() {
+    this.children.asMap().forEach((index, element) {
+      if (element.controller.isAnimating) {
+        // 正在动画，忽视
+        return;
+      }
+      if (index < currentIndex) {
+        element.controller.value = 1;
+      } else {
+        element.controller.value = 0;
+      }
+    });
+    setState(() {});
+  }
+
+  /// 手势滑动
   void _onPanUpdate(DragUpdateDetails details, Size size) {
     var delta = (size.width - details.globalPosition.dx) / size.width;
+    var _controller = _currentShowingWidget.controller;
     if (_isDragging) {
+      if (_controller == null) {
+        return;
+      }
       setState(() {
-        _panOffset = delta;
+        _controller.value = delta;
       });
       return;
     }
     _isDragging = true;
     _scrollState = this.getState(details.delta.dx);
 
-    // if (_scrollState == _ChapterScrollState.next) {
-    //   _controller.value = 0;
-    //   _controller.animateTo(delta);
-    // } else if (_scrollState == _ChapterScrollState.previous) {
-    //   _controller.value = 1;
-    //   _controller.animateBack(delta);
-    // }
+    if (_scrollState == _ChapterScrollState.next) {
+      _controller.value = 0;
+      _controller.animateTo(delta);
+    } else if (_scrollState == _ChapterScrollState.previous) {
+      _controller.value = 1;
+      _controller.animateBack(delta);
+    }
   }
 
-  /**
-   * 手势滑动结束
-   */
+  /// 手势滑动结束
   void _onPanEnd(DragEndDetails details, Size size) {
     _isDragging = false;
     bool isVelocity = details.velocity.pixelsPerSecond.dx.abs() > 0;
+    var _widget = _currentShowingWidget;
+    var _controller = _widget.controller;
+    var _panOffset = _controller.value;
 
-    // if (_scrollState == _ChapterScrollState.next) {
-    //   if (_panOffset > 0.5 || isVelocity) {
-    //     _controller.forward(from: _panOffset);
-    //   } else {
-    //     _controller.reverse(from: _panOffset);
-    //   }
-    // } else if (_scrollState == _ChapterScrollState.previous) {
-    //   if (_panOffset < 0.5 || isVelocity) {
-    //     _controller.reverse(from: _panOffset);
-    //   } else {
-    //     _controller.forward(from: _panOffset);
-    //   }
-    // }
+    if (_scrollState == _ChapterScrollState.next) {
+      if (_panOffset > 0.5 || isVelocity) {
+        _controller.forward(from: _panOffset).then((value) {
+          this.children.remove(_widget);
+          this.currentIndex -= 1;
+        });
+        this.scrollToNextPage();
+      } else {
+        _controller.reverse(from: _panOffset);
+      }
+    } else if (_scrollState == _ChapterScrollState.previous) {
+      if (_panOffset < 0.5 || isVelocity) {
+        _controller.reverse(from: _panOffset).then((value) {
+          this.children.remove(_widget);
+        });
+        this.scrollToPreviousPage();
+      } else {
+        _controller.forward(from: _panOffset);
+      }
+    }
+  }
+
+  animatedDone() {
+    var max = this.currentIndex + 2;
+    var min = this.currentIndex - 2;
+    var currentShowing = this._currentShowingWidget;
+    this.children.asMap().forEach((index, element) {
+      if ((index < min || index > max) && !element.controller.isAnimating) {}
+    });
+  }
+
+  _SinglePage createPage(Widget child) {
+    AnimationController controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 200));
+    Animation<double> animation =
+        CurvedAnimation(parent: controller, curve: Curves.linear);
+
+    return _SinglePage(
+      animation: animation,
+      controller: controller,
+      child: child,
+    );
   }
 }
