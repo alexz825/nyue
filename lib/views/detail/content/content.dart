@@ -160,8 +160,9 @@ class PageContentWidgetState extends State<PageContentWidget>
       targetWidget.controller.reverse();
     }
     //insert之后目标widget的位置自动+1了，不需要再设置currentIndex了
-    this.children.insert(
-        0, this.createPage(widget.previous(this.children[targetIndex].child)));
+    var previousContent = widget.previous(this.children[targetIndex].child);
+    var page = this.createPage(previousContent);
+    this.children.insert(0, page);
     this.currentIndex = targetIndex + 1;
     this.setupChildren();
   }
@@ -186,8 +187,9 @@ class PageContentWidgetState extends State<PageContentWidget>
   /// 手势滑动
   void _onPanUpdate(DragUpdateDetails details, Size size) {
     var delta = (size.width - details.globalPosition.dx) / size.width;
-    var _controller = _currentShowingWidget.controller;
+
     if (_isDragging) {
+      var _controller = _currentShowingWidget.controller;
       if (_controller == null) {
         return;
       }
@@ -199,6 +201,7 @@ class PageContentWidgetState extends State<PageContentWidget>
     _isDragging = true;
     _scrollState = this.getState(details.delta.dx);
 
+    var _controller = _currentShowingWidget.controller;
     if (_scrollState == _ChapterScrollState.next) {
       _controller.value = 0;
       _controller.animateTo(delta);
@@ -218,10 +221,9 @@ class PageContentWidgetState extends State<PageContentWidget>
 
     if (_scrollState == _ChapterScrollState.next) {
       if (_panOffset > 0.5 || isVelocity) {
-        _controller.forward(from: _panOffset).then((value) {
-          this.children.remove(_widget);
-          this.currentIndex -= 1;
-        });
+        _controller
+            .forward(from: _panOffset)
+            .whenComplete(() => animatedDone(_widget));
         this.scrollToNextPage();
       } else {
         _controller.reverse(from: _panOffset);
@@ -229,7 +231,8 @@ class PageContentWidgetState extends State<PageContentWidget>
     } else if (_scrollState == _ChapterScrollState.previous) {
       if (_panOffset < 0.5 || isVelocity) {
         _controller.reverse(from: _panOffset).then((value) {
-          this.children.remove(_widget);
+          print("dsalkfdjsakl;fdsf");
+          // animatedDone(_widget);
         });
         this.scrollToPreviousPage();
       } else {
@@ -238,13 +241,20 @@ class PageContentWidgetState extends State<PageContentWidget>
     }
   }
 
-  animatedDone() {
-    var max = this.currentIndex + 2;
-    var min = this.currentIndex - 2;
-    var currentShowing = this._currentShowingWidget;
-    this.children.asMap().forEach((index, element) {
-      if ((index < min || index > max) && !element.controller.isAnimating) {}
-    });
+  animatedDone(_SinglePage page) {
+    if (this.children.length < 5) {
+      return;
+    }
+    print(this.children);
+    print(page);
+    this.children.remove(page);
+    print(this.children.length);
+    // var max = this.currentIndex + 2;
+    // var min = this.currentIndex - 2;
+    // var currentShowing = this._currentShowingWidget;
+    // this.children.asMap().forEach((index, element) {
+    //   if ((index < min || index > max) && !element.controller.isAnimating) {}
+    // });
   }
 
   _SinglePage createPage(Widget child) {

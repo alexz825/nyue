@@ -55,7 +55,7 @@ class _ChapterReaderState extends State<ChapterReader> {
       ),
       next: (Widget w) {
         var key = w.key as ValueKey<int>;
-        print("next, and input Key: ${key.value}, outputKey: ${key.value + 1}");
+        // print("next, and input Key: ${key.value}, outputKey: ${key.value + 1}");
         return Container(
           key: ValueKey<int>(key.value + 1),
           color: Colors.white,
@@ -66,10 +66,10 @@ class _ChapterReaderState extends State<ChapterReader> {
       },
       previous: (Widget w) {
         var key = w.key as ValueKey<int>;
-        if (key == 0) {
+        if (key.value == 0) {
           return null;
         }
-        print("previous, and Key: ${key.value}, outputKey: ${key.value - 1}");
+        // print("previous, and Key: ${key.value}, outputKey: ${key.value - 1}");
         return Container(
           key: ValueKey<int>(key.value - 1),
           color: Colors.white,
