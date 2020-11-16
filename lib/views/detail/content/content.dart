@@ -58,7 +58,6 @@ class PageContentWidgetState extends State<PageContentWidget>
     with TickerProviderStateMixin {
   _ChapterScrollState _scrollState = _ChapterScrollState.no;
 
-  var _isDragging = false;
   int currentIndex;
 
   List<_SinglePage> children = [];
@@ -69,12 +68,12 @@ class PageContentWidgetState extends State<PageContentWidget>
   /// 2. 需要提前判断是否是第一页或者最后一页
   _SinglePage get _currentShowingWidget {
     switch (this._scrollState) {
-      case _ChapterScrollState.no:
-        return null;
       case _ChapterScrollState.previous:
         return children[currentIndex - 1];
       case _ChapterScrollState.next:
         return children[currentIndex];
+      default:
+        return null;
     }
   }
 
@@ -86,7 +85,6 @@ class PageContentWidgetState extends State<PageContentWidget>
         widget.initial,
       ),
     ];
-    this.setupChildren();
     super.initState();
   }
 
@@ -128,6 +126,7 @@ class PageContentWidgetState extends State<PageContentWidget>
     return _ChapterScrollState.no;
   }
 
+  /// 滑动到下一页
   void scrollToNextPage({double from}) {
     var targetIndex = this.currentIndex;
     var targetWidget = this.children[targetIndex];
@@ -143,6 +142,7 @@ class PageContentWidgetState extends State<PageContentWidget>
     this.setupChildren();
   }
 
+  /// 滑动到上一页
   void scrollToPreviousPage({double from}) {
     var targetIndex = this.currentIndex - 1;
     var targetWidget = this.children[targetIndex];
@@ -157,6 +157,16 @@ class PageContentWidgetState extends State<PageContentWidget>
     this.children.insert(0, page);
     this.currentIndex = targetIndex + 1;
     this.setupChildren();
+  }
+
+  /// 插入page到指定位置，并设置当前可见状态
+  bool insertChild(_SinglePage page, int index) {
+    if (this.children[index].key == page.key) {
+      return false;
+    }
+    this.children.insert(index, page);
+    this.setupChildren();
+    return true;
   }
 
   /// 设置所有页面当前的位置
@@ -176,12 +186,18 @@ class PageContentWidgetState extends State<PageContentWidget>
     setState(() {});
   }
 
+  void restoreScrollStatus() {
+    this._scrollState = _ChapterScrollState.no;
+  }
+
   /// 手势滑动
   void _onPanUpdate(DragUpdateDetails details, Size size) {
     var delta = (size.width - details.globalPosition.dx) / size.width;
 
-    if (_isDragging) {
+    /// scrolling with panGesutre
+    if (this._scrollState != _ChapterScrollState.no) {
       var _controller = _currentShowingWidget.controller;
+
       if (_controller == null) {
         return;
       }
@@ -190,22 +206,63 @@ class PageContentWidgetState extends State<PageContentWidget>
       });
       return;
     }
-    _isDragging = true;
-    _scrollState = this.getState(details.delta.dx);
 
+    /// start pan gesture
+    // 1. 设置当前状态
+    var _scrollState = this.getState(details.delta.dx);
+    // 2. 获取要显示的view
+    var currentShowingWidget = this.children[this.currentIndex].child;
+
+    WidgetGet getter;
+    int insertIndex;
+    switch (_scrollState) {
+      case _ChapterScrollState.next:
+        getter = widget.next;
+        insertIndex = this.children.length - 1;
+        break;
+      case _ChapterScrollState.previous:
+        getter = widget.previous;
+        insertIndex = 0;
+        break;
+      default:
+        break;
+    }
+    if (getter == null) {
+      this.restoreScrollStatus();
+      return;
+    }
+    var willShowWidget = getter(currentShowingWidget);
+    if (willShowWidget == null) {
+      this.restoreScrollStatus();
+      return;
+    }
+
+    bool insertSuccess =
+        this.insertChild(createPage(willShowWidget), insertIndex);
+
+    // if (insertSuccess) {
+    //   this.restoreScrollStatus();
+    //   return;
+    // }
+    this._scrollState = _scrollState;
     var _controller = _currentShowingWidget.controller;
     if (_scrollState == _ChapterScrollState.next) {
       _controller.value = 0;
       _controller.animateTo(delta);
+      setState(() {
+        this.children.add(createPage(willShowWidget));
+      });
     } else if (_scrollState == _ChapterScrollState.previous) {
       _controller.value = 1;
       _controller.animateBack(delta);
+      this.setState(() {
+        this.currentIndex += 1;
+      });
     }
   }
 
   /// 手势滑动结束
   void _onPanEnd(DragEndDetails details, Size size) {
-    _isDragging = false;
     bool isVelocity = details.velocity.pixelsPerSecond.dx.abs() > 0;
     var _widget = _currentShowingWidget;
     var _controller = _widget.controller;
@@ -215,7 +272,7 @@ class PageContentWidgetState extends State<PageContentWidget>
       if (_panOffset > 0.5 || isVelocity) {
         _controller
             .forward(from: _panOffset)
-            .whenComplete(() => animatedDone(_widget));
+            .then((value) => {this.animatedDone(_widget)});
         this.scrollToNextPage();
       } else {
         _controller.reverse(from: _panOffset);
@@ -223,24 +280,26 @@ class PageContentWidgetState extends State<PageContentWidget>
     } else if (_scrollState == _ChapterScrollState.previous) {
       if (_panOffset < 0.5 || isVelocity) {
         _controller.reverse(from: _panOffset).then((value) {
-          print("dsalkfdjsakl;fdsf");
-          // animatedDone(_widget);
+          print("dskjla;fsjifds;af");
+          this.animatedDone(_widget);
         });
         this.scrollToPreviousPage();
       } else {
         _controller.forward(from: _panOffset);
       }
     }
+    this.restoreScrollStatus();
   }
 
-  animatedDone(_SinglePage page) {
+  void animatedDone(_SinglePage page) {
+    print("done");
     if (this.children.length < 5) {
       return;
     }
-    print(this.children);
-    print(page);
+    // print(this.children);
+    // print(page);
     this.children.remove(page);
-    print(this.children.length);
+    print("children.length === $(this.children.length)");
     // var max = this.currentIndex + 2;
     // var min = this.currentIndex - 2;
     // var currentShowing = this._currentShowingWidget;
