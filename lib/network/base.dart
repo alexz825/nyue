@@ -1,9 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
 import 'const.dart';
 import 'exception.dart';
 import 'cache.dart';
@@ -72,7 +68,7 @@ class Http {
     String path, {
     Map<String, dynamic> params,
     String keypath = "",
-    Options options = null,
+    Options options,
     bool noCache = !CACHE_ENABLE,
     String cacheKey = "",
     bool cacheDisk = false,
@@ -100,7 +96,7 @@ class Http {
     String path, {
     Map<String, dynamic> params,
     String keypath = "",
-    Options options = null,
+    Options options,
     bool noCache = !CACHE_ENABLE,
     String cacheKey = "",
     bool cacheDisk = false,
@@ -130,8 +126,7 @@ class Http {
   dynamic processResponseData(jsonValue, String keypath) {
     if (!(jsonValue is Map<String, dynamic>)) {
       var arrayWithCommaEndRegex = "},]";
-      if (jsonValue is String &&
-          (jsonValue as String).contains(arrayWithCommaEndRegex)) {
+      if (jsonValue is String && jsonValue.contains(arrayWithCommaEndRegex)) {
         jsonValue =
             (jsonValue as String).replaceAll(arrayWithCommaEndRegex, "}]");
       }

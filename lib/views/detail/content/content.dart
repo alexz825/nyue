@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+@immutable
 class _SinglePage extends AnimatedWidget {
   _SinglePage(
       {Key key,
@@ -9,9 +10,9 @@ class _SinglePage extends AnimatedWidget {
       @required this.controller})
       : super(key: key, listenable: animation);
 
-  Widget child;
+  final Widget child;
+  final AnimationController controller;
   Animation<double> get animation => listenable as Animation<double>;
-  AnimationController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +44,9 @@ class PageContentWidget extends StatefulWidget {
       Key key})
       : super(key: key);
 
-  WidgetGet previous;
-  WidgetGet next;
-  Widget initial;
+  final WidgetGet previous;
+  final WidgetGet next;
+  final Widget initial;
 
   @override
   State<StatefulWidget> createState() => PageContentWidgetState();
@@ -63,11 +64,9 @@ class PageContentWidgetState extends State<PageContentWidget>
   List<_SinglePage> children = [];
   Map<Widget, AnimationController> controllers = {};
 
-  /**
-   * 获取当前显示的widget
-   * 1. 需要提前设置scrollState
-   * 2. 需要提前判断是否是第一页或者最后一页
-   */
+  /// 获取当前显示的widget
+  /// 1. 需要提前设置scrollState
+  /// 2. 需要提前判断是否是第一页或者最后一页
   _SinglePage get _currentShowingWidget {
     switch (this._scrollState) {
       case _ChapterScrollState.no:
@@ -81,15 +80,10 @@ class PageContentWidgetState extends State<PageContentWidget>
 
   @override
   void initState() {
-    currentIndex = 1;
-    var previous = widget.previous(widget.initial);
+    currentIndex = 0;
     this.children = [
-      previous != null ? createPage(previous) : null,
       createPage(
         widget.initial,
-      ),
-      createPage(
-        widget.next(widget.initial),
       ),
     ];
     this.setupChildren();
@@ -121,10 +115,8 @@ class PageContentWidgetState extends State<PageContentWidget>
     super.dispose();
   }
 
-  /**
-   * 根据滑动初始状态判断是上一页还是下一页
-   * [panDelta] 滑动的距离
-   */
+  /// 根据滑动初始状态判断是上一页还是下一页
+  /// [panDelta] 滑动的距离
   _ChapterScrollState getState(double panDelta) {
     if (panDelta == 0) {
       return _ChapterScrollState.no;

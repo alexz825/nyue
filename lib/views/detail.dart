@@ -8,12 +8,12 @@ import 'package:nyue/views/uikit/NetworkImg.dart';
 import 'package:nyue/views/util/navigator.dart';
 
 class _LayoutProperty {
-  static var ListViewPadding = EdgeInsets.fromLTRB(15, 10, 15, 10);
+  static const ListViewPadding = EdgeInsets.fromLTRB(15, 10, 15, 10);
   // static var BookInfoPadding = EdgeInsets.fromLTRB(0, 10, 0, 0);
-  static var BookInfoDescPadding = EdgeInsets.fromLTRB(15, 0, 15, 0);
-  static var bottomHeight = 30.0;
+  static const BookInfoDescPadding = EdgeInsets.fromLTRB(15, 0, 15, 0);
+  static const bottomHeight = 30.0;
 
-  static TextStyle BottomButtonTextStyle(Color color) {
+  static TextStyle bottomButtonTextStyle(Color color) {
     return TextStyle(fontSize: 16, color: color);
   }
 }
@@ -23,8 +23,7 @@ abstract class BookDetailState {}
 class BookDetailStateLoading implements BookDetailState {}
 
 class BookDetailStateSuccess implements BookDetailState {
-  @override
-  BookModel book;
+  final BookModel book;
 
   BookDetailStateSuccess(this.book);
 }
@@ -40,8 +39,8 @@ class BookDetailBloc extends Cubit<BookDetailState> {
 }
 
 class BookDetailPage extends StatelessWidget {
-  int bookId;
-  BookDetailPage(@required this.bookId, {Key key}) : super(key: key);
+  final int bookId;
+  BookDetailPage(this.bookId, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +93,7 @@ class BookDetailPage extends StatelessWidget {
                             ),
                             label: Text(
                               "加书架",
-                              style: _LayoutProperty.BottomButtonTextStyle(
+                              style: _LayoutProperty.bottomButtonTextStyle(
                                   ZTheme.color.grayLevel1),
                             ),
                           )
@@ -105,7 +104,7 @@ class BookDetailPage extends StatelessWidget {
                             ),
                             label: Text(
                               "已加入",
-                              style: _LayoutProperty.BottomButtonTextStyle(
+                              style: _LayoutProperty.bottomButtonTextStyle(
                                   ZTheme.color.grayLevel1),
                             ),
                           ),
@@ -123,7 +122,7 @@ class BookDetailPage extends StatelessWidget {
                     color: Colors.blue,
                     child: Text(
                       "开始阅读",
-                      style: _LayoutProperty.BottomButtonTextStyle(
+                      style: _LayoutProperty.bottomButtonTextStyle(
                           ZTheme.color.white),
                     ),
                   ),
@@ -149,7 +148,7 @@ class BookDetailPage extends StatelessWidget {
                   margin: EdgeInsets.only(right: 10),
                   child: AspectRatio(
                     aspectRatio: 0.75,
-                    child: NetworkImg(book.img),
+                    child: NetworkImg(url: book.img),
                   ),
                 ),
                 Wrap(

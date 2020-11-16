@@ -45,6 +45,7 @@ class HomeTabbarState extends State<HomeTabbar>
   @override
   void initState() {
     controller = new TabController(length: 3, vsync: this);
+    super.initState();
   }
 
   @override

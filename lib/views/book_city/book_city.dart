@@ -139,7 +139,7 @@ class BookCityCubit extends Cubit<BookCityState> {
         emit(newState);
       }
     }).catchError((e) {
-      if (newState.items != 0 && newState.page <= 1) {
+      if (newState.items.length != 0 && newState.page <= 1) {
         newState.errorString = e.toString();
       }
       emit(newState);

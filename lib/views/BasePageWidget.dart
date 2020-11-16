@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -47,12 +46,10 @@ class FutureBuilderWidget<T> extends StatefulWidget {
   final LoadDataFuture<T> loadData;
 
   FutureBuilderWidget(
-      {
-        @required this.commonWidget,
-        @required this.loadData,
-        this.loadingWidget,
-        this.errorWidget
-      });
+      {@required this.commonWidget,
+      @required this.loadData,
+      this.loadingWidget,
+      this.errorWidget});
 
   @override
   State<StatefulWidget> createState() {
@@ -76,8 +73,8 @@ class NetErrorWidget extends StatelessWidget {
   }
 }
 
-class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with ErrorCallback {
-
+class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget>
+    with ErrorCallback {
   bool isRequesting = false;
   Future loadData;
 
@@ -86,6 +83,7 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
     super.initState();
     this.request();
   }
+
   // 默认加载页面
   final defaultLoading = Center(
     child: CircularProgressIndicator(),
@@ -141,7 +139,7 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
     });
   }
 
-  Future request() {
+  request() {
     if (this.isRequesting && this.loadData != null) {
       return this.loadData;
     }
@@ -151,4 +149,3 @@ class _FutureBuilderWidgetState<T> extends State<FutureBuilderWidget> with Error
     });
   }
 }
-

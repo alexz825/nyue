@@ -4,8 +4,8 @@ import 'package:nyue/util/theme_manager.dart';
 import 'package:nyue/views/uikit/NetworkImg.dart';
 
 class BookCard extends StatelessWidget {
-  BookCard(@required this.model, {Key key}) : super(key: key);
-  BaseBookModel model;
+  BookCard(this.model, {Key key}) : super(key: key);
+  final BaseBookModel model;
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -24,7 +24,7 @@ class BookCard extends StatelessWidget {
             Expanded(
               child: AspectRatio(
                 aspectRatio: 0.75,
-                child: NetworkImg(model.img),
+                child: NetworkImg(url: model.img),
               ),
             ),
             Container(

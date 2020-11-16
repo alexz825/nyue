@@ -1,7 +1,4 @@
-import 'dart:convert';
-/**
- * 网络请求错误码
- */
+///网络请求错误码
 enum NetworkCode {
   NETWORK_ERROR,
   NETWORK_TIMEOUT,
@@ -10,9 +7,7 @@ enum NetworkCode {
   OTHER
 }
 
-/**
- * 错误码对应描述
- */
+/// 错误码对应描述
 extension NetworkCodeMessage on NetworkCode {
   String get message {
     switch (this) {
@@ -24,13 +19,8 @@ extension NetworkCodeMessage on NetworkCode {
   }
 }
 
-/**
- * 请求方法
- */
-enum HttpMethod {
-  GET,
-  POST
-}
+/// 请求方法
+enum HttpMethod { GET, POST }
 
 class ResultEntity {
   ResultEntity({
@@ -44,14 +34,12 @@ class ResultEntity {
   factory ResultEntity.fromRawJson(dynamic str) => ResultEntity.fromJson(str);
 
   factory ResultEntity.fromJson(Map<String, dynamic> json) => ResultEntity(
-    status: json["status"],
-    info: json["info"],
-  );
-
+        status: json["status"],
+        info: json["info"],
+      );
 }
 
 class ResponseError extends Error {
   String msg;
   ResponseError(this.msg);
 }
-

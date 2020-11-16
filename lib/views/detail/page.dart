@@ -11,8 +11,8 @@ class _LayoutPropery {
 }
 
 class ChapterReader extends StatefulWidget {
-  int bookId;
-  int chapterId;
+  final int bookId;
+  final int chapterId;
   ChapterReader(this.bookId, this.chapterId, {Key key}) : super(key: key);
 
   @override

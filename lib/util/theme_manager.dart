@@ -38,4 +38,5 @@ class ThemeManager {
       TextStyle(fontSize: 14 /* font.titleFontSize */, color: color.grayLevel2);
 }
 
+// ignore: non_constant_identifier_names
 final ZTheme = ThemeManager();
