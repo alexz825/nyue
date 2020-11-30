@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/views/detail/bloc.dart';
-
-import 'content/content.dart';
 import 'state.dart';
+import 'content/content.dart';
+import 'package:flutter_swiper/flutter_swiper.dart';
 
 class _LayoutPropery {
   var contentHorizontalPadding = 15.0;
@@ -45,39 +45,8 @@ class _ChapterReaderState extends State<ChapterReader> {
 
     return Scaffold(
         body: Container(
-            child: PageContentWidget(
-      initial: Container(
-        key: ValueKey<int>(1),
-        color: Colors.white,
-        child: Center(
-          child: Text("1"),
-        ),
-      ),
-      next: (Widget w) {
-        var key = w.key as ValueKey<int>;
-        print("next, and input Key: ${key.value}, outputKey: ${key.value + 1}");
-        return Container(
-          key: ValueKey<int>(key.value + 1),
-          color: Colors.white,
-          child: Center(
-            child: Text("${key.value + 1}"),
-          ),
-        );
-      },
-      previous: (Widget w) {
-        var key = w.key as ValueKey<int>;
-        if (key == null || key.value == 0) {
-          return null;
-        }
-        print("previous, and Key: ${key.value}, outputKey: ${key.value - 1}");
-        return Container(
-          key: ValueKey<int>(key.value - 1),
-          color: Colors.white,
-          child: Center(
-            child: Text("${key.value - 1}"),
-          ),
-        );
-      },
+            child: Center(
+      child: Container(),
     )));
   }
 

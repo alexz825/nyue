@@ -14,6 +14,39 @@ ChapterContent chapterCotnent = ChapterContent.fromJson("""
   }
 """);
 
+String themesJson = """
+[
+  {
+    "backgroundColor": "#D7EAD6",
+    "textColor": "#2f442e",
+    "subtextColor": "#8f9d8f",
+    "toolBackgroundColor": "#808c80"
+  }
+]
+""";
+
+class ReaderThemeSetting {
+  ReaderThemeSetting({
+    this.backgroundColor,
+    this.textColor,
+    this.subtextColor,
+    this.toolBackgroundColor,
+  });
+
+  String backgroundColor;
+  String textColor;
+  String subtextColor;
+  String toolBackgroundColor;
+
+  factory ReaderThemeSetting.fromJson(Map<String, dynamic> json) =>
+      ReaderThemeSetting(
+        backgroundColor: json["backgroundColor"],
+        textColor: json["textColor"],
+        subtextColor: json["subtextColor"],
+        toolBackgroundColor: json["toolBackgroundColor"],
+      );
+}
+
 class ChapterReaderState {
   Future<ChapterContent> request(int bookId, int chapterId) {
     return HttpUtil.getChapterContent(bookId, chapterId).then((value) {

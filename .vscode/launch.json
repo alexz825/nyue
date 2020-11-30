@@ -13,7 +13,13 @@
         {
             "name": "nyue",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+        },
+        {
+            "name": "alex iPhone",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "00008030-001A4C192245802E"
         }
     ]
 }

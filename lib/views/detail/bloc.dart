@@ -6,5 +6,5 @@ class ChapterReaderBloc extends Cubit<ChapterReaderState> {
 }
 
 class ChapterReaderSettingBloc extends Cubit<ChapterReaderSettingState> {
-  ChapterReaderSettingBloc(ChapterReaderSettingState state) : super(state);
+  ChapterReaderSettingBloc(ChapterReaderSettingState state) : super(state) {}
 }
