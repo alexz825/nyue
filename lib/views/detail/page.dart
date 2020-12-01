@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nyue/views/detail/bloc.dart';
 import 'state.dart';
-import 'content/content.dart';
+import 'content/reader.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 
 class _LayoutPropery {
@@ -44,10 +44,42 @@ class _ChapterReaderState extends State<ChapterReader> {
     // context.bloc<ChapterReaderBloc>();
 
     return Scaffold(
-        body: Container(
-            child: Center(
-      child: Container(),
-    )));
+        body: SizedBox.expand(
+            child: Container(
+                child: ReaderPageView(
+      initial: Container(
+        key: ValueKey<int>(1),
+        color: Colors.white,
+        child: Center(
+          child: Text("1"),
+        ),
+      ),
+      next: (Widget w) {
+        var key = w.key as ValueKey<int>;
+        print("next, and input Key: ${key.value}, outputKey: ${key.value + 1}");
+        return Container(
+          key: ValueKey<int>(key.value + 1),
+          color: Colors.white,
+          child: Center(
+            child: Text("${key.value + 1}"),
+          ),
+        );
+      },
+      previous: (Widget w) {
+        var key = w.key as ValueKey<int>;
+        if (key == null || key.value == 0) {
+          return null;
+        }
+        print("previous, and Key: ${key.value}, outputKey: ${key.value - 1}");
+        return Container(
+          key: ValueKey<int>(key.value - 1),
+          color: Colors.white,
+          child: Center(
+            child: Text("${key.value - 1}"),
+          ),
+        );
+      },
+    ))));
   }
 
   @override
