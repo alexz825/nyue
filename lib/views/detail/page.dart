@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nyue/views/detail/bloc.dart';
+import 'bloc.dart';
 import 'state.dart';
 import 'content/reader.dart';
-import 'package:flutter_swiper/flutter_swiper.dart';
 
 class _LayoutPropery {
   var contentHorizontalPadding = 15.0;

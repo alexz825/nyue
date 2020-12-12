@@ -136,7 +136,6 @@ class ReaderPageViewState extends State<ReaderPageView>
       targetWidget.controller.forward(from: from);
     }
     this.currentIndex = targetIndex + 1;
-    print(this.currentIndex);
     this.children.add(
         this.createPage(widget.next(this.children[this.currentIndex].child)));
     this.setupChildren();
@@ -162,7 +161,7 @@ class ReaderPageViewState extends State<ReaderPageView>
 
   /// 插入page到指定位置，并设置当前可见状态
   bool insertChild(_SinglePage page, int index) {
-    if (this.children[index].key == page.key) {
+    if (this.children[index].child.key == page.child.key) {
       return false;
     }
     this.children.insert(index, page);
@@ -228,37 +227,35 @@ class ReaderPageViewState extends State<ReaderPageView>
       default:
         break;
     }
-    if (getter == null) {
-      this.restoreScrollStatus();
-      return;
-    }
-    var willShowWidget = getter(currentShowingWidget);
-    if (willShowWidget == null) {
-      this.restoreScrollStatus();
-      return;
+
+    var willShowWidget;
+    if (this.currentIndex + 1 >= this.children.length) { // 没有下一页
+      if (getter == null) {
+        this.restoreScrollStatus();
+        return;
+      }
+      willShowWidget = getter(currentShowingWidget);
+      if (willShowWidget == null) {
+        this.restoreScrollStatus();
+        return;
+      }
+      bool insertSuccess = this.insertChild(createPage(willShowWidget), insertIndex);
+      if (insertSuccess) {
+        this.restoreScrollStatus();
+        return;
+      }
+    } else {
+      willShowWidget = this.children[this.currentIndex + 1];
     }
 
-    bool insertSuccess =
-        this.insertChild(createPage(willShowWidget), insertIndex);
-
-    // if (insertSuccess) {
-    //   this.restoreScrollStatus();
-    //   return;
-    // }
     this._scrollState = _scrollState;
     var _controller = _currentShowingWidget.controller;
     if (_scrollState == _ReaderScrollState.next) {
       _controller.value = 0;
       _controller.animateTo(delta);
-      setState(() {
-        this.children.add(createPage(willShowWidget));
-      });
     } else if (_scrollState == _ReaderScrollState.previous) {
       _controller.value = 1;
       _controller.animateBack(delta);
-      this.setState(() {
-        this.currentIndex += 1;
-      });
     }
   }
 
@@ -273,20 +270,23 @@ class ReaderPageViewState extends State<ReaderPageView>
       if (_panOffset > 0.5 || isVelocity) {
         _controller
             .forward(from: _panOffset)
-            .then((value) => {this.animatedDone(_widget)});
+            .whenComplete(() => {this.animatedDone(_widget)});
         this.scrollToNextPage();
       } else {
-        _controller.reverse(from: _panOffset);
+        _controller
+            .reverse(from: _panOffset);
+            // .whenComplete(() => {this.animatedDone(_widget)});
       }
     } else if (_scrollState == _ReaderScrollState.previous) {
       if (_panOffset < 0.5 || isVelocity) {
-        _controller.reverse(from: _panOffset).then((value) {
-          print("dskjla;fsjifds;af");
-          this.animatedDone(_widget);
-        });
+        _controller
+            .reverse(from: _panOffset)
+            .whenComplete(() => {this.animatedDone(_widget)});;
         this.scrollToPreviousPage();
       } else {
-        _controller.forward(from: _panOffset);
+        _controller
+            .forward(from: _panOffset);
+            // .whenComplete(() => {this.animatedDone(_widget)});
       }
     }
     this.restoreScrollStatus();
