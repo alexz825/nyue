@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 @immutable
 class _SinglePage extends AnimatedWidget {
@@ -12,6 +14,7 @@ class _SinglePage extends AnimatedWidget {
 
   final Widget child;
   final AnimationController controller;
+
   Animation<double> get animation => listenable as Animation<double>;
 
   @override
@@ -161,10 +164,7 @@ class ReaderPageViewState extends State<ReaderPageView>
 
   /// 插入page到指定位置，并设置当前可见状态
   bool insertChild(_SinglePage page, int index) {
-    if (this.children[index].child.key == page.child.key) {
-      return false;
-    }
-    this.children.insert(index, page);
+    this.children.insert(min(index, 0), page);
     this.setupChildren();
     return true;
   }
@@ -218,18 +218,18 @@ class ReaderPageViewState extends State<ReaderPageView>
     switch (_scrollState) {
       case _ReaderScrollState.next:
         getter = widget.next;
-        insertIndex = this.children.length - 1;
+        insertIndex = this.currentIndex + 1;
         break;
       case _ReaderScrollState.previous:
         getter = widget.previous;
-        insertIndex = 0;
+        insertIndex = this.currentIndex - 1;
         break;
       default:
         break;
     }
 
     var willShowWidget;
-    if (this.currentIndex + 1 >= this.children.length) { // 没有下一页
+    if (insertIndex >= this.children.length || insertIndex < 0) {
       if (getter == null) {
         this.restoreScrollStatus();
         return;
@@ -239,13 +239,14 @@ class ReaderPageViewState extends State<ReaderPageView>
         this.restoreScrollStatus();
         return;
       }
-      bool insertSuccess = this.insertChild(createPage(willShowWidget), insertIndex);
+      bool insertSuccess =
+          this.insertChild(createPage(willShowWidget), insertIndex);
       if (insertSuccess) {
         this.restoreScrollStatus();
         return;
       }
     } else {
-      willShowWidget = this.children[this.currentIndex + 1];
+      willShowWidget = this.children[insertIndex];
     }
 
     this._scrollState = _scrollState;
@@ -268,45 +269,44 @@ class ReaderPageViewState extends State<ReaderPageView>
 
     if (_scrollState == _ReaderScrollState.next) {
       if (_panOffset > 0.5 || isVelocity) {
-        _controller
-            .forward(from: _panOffset)
-            .whenComplete(() => {this.animatedDone(_widget)});
+        _controller.forward(from: _panOffset).whenCompleteOrCancel(() {
+          this.animatedDone(_widget);
+        });
+
         this.scrollToNextPage();
       } else {
-        _controller
-            .reverse(from: _panOffset);
-            // .whenComplete(() => {this.animatedDone(_widget)});
+        _controller.reverse(from: _panOffset);
       }
     } else if (_scrollState == _ReaderScrollState.previous) {
       if (_panOffset < 0.5 || isVelocity) {
         _controller
             .reverse(from: _panOffset)
-            .whenComplete(() => {this.animatedDone(_widget)});;
+            .whenCompleteOrCancel(() => {this.animatedDone(_widget)});
         this.scrollToPreviousPage();
       } else {
-        _controller
-            .forward(from: _panOffset);
-            // .whenComplete(() => {this.animatedDone(_widget)});
+        _controller.forward(from: _panOffset);
       }
     }
     this.restoreScrollStatus();
   }
 
   void animatedDone(_SinglePage page) {
-    print("done");
     if (this.children.length < 5) {
       return;
     }
-    // print(this.children);
-    // print(page);
-    this.children.remove(page);
-    print("children.length === ${this.children.length}");
-    // var max = this.currentIndex + 2;
-    // var min = this.currentIndex - 2;
+
+    var max = this.currentIndex + 2;
+    var min = this.currentIndex - 2;
     // var currentShowing = this._currentShowingWidget;
-    // this.children.asMap().forEach((index, element) {
-    //   if ((index < min || index > max) && !element.controller.isAnimating) {}
-    // });
+    this.children.asMap().forEach((index, element) {
+      if ((index < min || index > max) && !element.controller.isAnimating) {
+        this.children.remove(element);
+        if (index <= this.currentIndex) {
+          this.currentIndex -= 1;
+        }
+      }
+    });
+    print("children.length:${this.children.length}, currentIndex:${this.currentIndex}");
   }
 
   _SinglePage createPage(Widget child) {
